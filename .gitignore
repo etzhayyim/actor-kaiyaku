@@ -2,3 +2,4 @@
 # generated readouts — machine-local, resume-safe, regenerable; never committed.
 data/persisted/
 out/
+.cpcache/
