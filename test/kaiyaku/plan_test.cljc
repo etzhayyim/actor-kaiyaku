@@ -1,0 +1,83 @@
+(ns kaiyaku.plan-test
+  "Gate tests for kaiyaku.plan + kaiyaku.datoms (G3 / G5 / G6 / G8 / G2)."
+  (:require [clojure.test :refer [deftest is testing]]
+            [clojure.string :as str]
+            [kaiyaku.ledger :as ledger]
+            [kaiyaku.analyze :as analyze]
+            [kaiyaku.plan :as plan]
+            [kaiyaku.datoms :as datoms]))
+
+(defn graph [] (ledger/parse #?(:clj (slurp "data/seed-en-ledger.kotoba.edn")
+                                :cljs (throw (ex-info "host must inject the seed" {})))))
+
+(defn plan-for [ps svc] (first (filter #(= svc (:svc %)) ps)))
+
+(deftest g3-evasion-unrepresentable
+  (testing "G3 — every detection-evasion verb throws at the only step constructor"
+    (doseq [v plan/evasion-verbs]
+      (is (thrown-with-msg?
+           #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"G3"
+           (plan/make-step v "x"))
+          (str "verb " v " must be unrepresentable")))))
+
+(deftest g3-stance-refuses-t2
+  (testing "G3 — :prohibited / :unknown browser stance never reaches T2"
+    (is (= "T3" (plan/select-tier {:svc/cancel {:api :none :browser :prohibited}})))
+    (is (= "T3" (plan/select-tier {:svc/cancel {:api :none :browser :unknown}})))
+    (is (= "T3" (plan/select-tier {})))
+    (is (= "T2" (plan/select-tier {:svc/cancel {:api :none :browser :permitted}})))
+    (is (= "T1" (plan/select-tier {:svc/cancel {:api :available :browser :permitted}})))))
+
+(deftest plans-over-seed
+  (let [g  (graph)
+        ps (plan/plans g)]
+    (is (= 6 (count ps)))  ; 5 :sever + 1 :review-cascade
+    (testing "tier routing mirrors the seed stances"
+      (is (= "T2" (:tier (plan-for ps "svc:video-a"))))
+      (is (= "T3" (:tier (plan-for ps "svc:gym-b"))))      ; browser :prohibited
+      (is (= "T3" (:tier (plan-for ps "svc:merchant-g")))) ; browser :unknown
+      (is (= "T1" (:tier (plan-for ps "svc:cloud-h")))))   ; api :available
+    (testing "cascade re-home steps come FIRST on a :review-cascade plan"
+      (let [mail (plan-for ps "svc:mail-f")]
+        (is (= :review-cascade (:recommendation mail)))
+        (is (= ["rehome-dependency" "rehome-dependency"]
+               (map :verb (take 2 (:steps mail)))))))
+    (testing "every plan ends with portability export + closure confirmation"
+      (doseq [p ps]
+        (is (= ["export-own-data" "confirm-closure"]
+               (map :verb (take-last 2 (:steps p)))))))
+    (testing "G8 — cost-of-severance carried, never planned around"
+      (let [gym (plan-for ps "svc:gym-b")]
+        (is (= 30 (:notice-days gym)))
+        (is (= 5000 (:penalty-jpy gym)))))
+    (testing "G5 — every plan is dry-run + triple-gated"
+      (doseq [p ps]
+        (is (= :dry-run (:mode p)))
+        (is (= {:member-sig true :dry-run-confirm true :council-lv6-operator-gate true}
+               (:requires p)))))))
+
+(deftest g5-g6-execute-throws
+  (testing "G5/G6 — live execution is gated at R0; execute always throws"
+    (is (thrown-with-msg?
+         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"G5/G6"
+         (plan/execute (first (plan/plans (graph))))))))
+
+(deftest datoms-strata
+  (let [g   (graph)
+        res (analyze/analyze g)
+        ds  (datoms/datoms g res)]
+    (testing "every datom is [e a v tx op]"
+      (is (every? #(and (vector? %) (= 5 (count %)) (= :add (peek %))) ds)))
+    (testing "G2 — every derived readout datom is marked transient"
+      (let [readout-eids (set (map first (filter #(str/starts-with? (str (first %)) "readout:") ds)))]
+        (is (pos? (count readout-eids)))
+        (doseq [eid readout-eids]
+          (is (some #(and (= eid (first %)) (= :bond/is-transient (second %)) (true? (nth % 2))) ds)
+              (str eid " must carry :bond/is-transient true")))))
+    (testing "ground facts present (nodes + ties)"
+      (is (some #(= [:svc/label "Gym Membership B"] [(second %) (nth % 2)]) ds))
+      (is (some #(= :en/monthly-cost-jpy (second %)) ds)))
+    (testing "render-edn emits kotoba EDN text"
+      (let [text (datoms/render-edn ds res)]
+        (is (str/includes? text ":bond/is-transient"))
+        (is (str/includes? text "recoverable-jpy-mo=12630"))))))

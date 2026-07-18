@@ -1,0 +1,90 @@
+{:actor/id        "kaiyaku"
+ :actor/glyph     "解"
+ :actor/tier      :tier-b
+ :actor/integrates ["karakuri" "kokoro" "kurashimori" "meisai" "organizer" "tate"]
+ :actor/domain    "kaiyaku.etzhayyim.com"
+ :actor/did       "did:web:etzhayyim.com:actor:kaiyaku"
+ :actor/aka       ["did:web:kaiyaku.etzhayyim.com"] ; legacy ref in organizer CLAUDE.md pipeline
+ :actor/purpose   "縁切り (tie-severance) EXECUTOR for the member's OWN service ties — the missing last leg of the organizer subscription-discovery pipeline (mailer → organizer → kaiyaku). Holds the member's 縁-ledger (subscriptions / dormant accounts / recurring card charges / SSO·payment dependencies) edge-primary in the kotoba Datom log, computes per-TIE burden routed to RELEASE (:keep/:review/:sever, organizer-disclosed thresholds, dependency cascade-guard), and turns an approved :sever into a severance plan through the safest adapter tier (karakuri ServiceOp pattern: T1 official-API cancel > T2 ToS-permitted browser-use > T3 self-submit 解約/退会 procedure). Own-account-only, ToS-honest (no detection-evasion), no-server-key, member-signed destructive ops, cost-of-severance honesty (notice/違約金 surfaced, never planned around). Human relationships are STRUCTURALLY out of scope — a tie target is always a service, never a person."
+ :actor/status    :r0
+ :actor/adr       "2606112201"
+ :actor/related   ["2606039200"   ; karakuri ServiceOp tiers + ToS stances (execution substrate)
+                   "2606072400"   ; organizer kotoba-native (subscription-discovery upstream)
+                   "2605312500"   ; kurashimori (クーリングオフ/返金 — adjacent, NOT 解約)
+                   "2605312030"   ; toritsugi (default-self-submit pattern)
+                   "2605302130"   ; himotoki (own-data-only prior art)
+                   "2605231525"   ; no-server-key
+                   "2605215000"   ; Murakumo-only
+                   "2605181100"   ; encrypted consent envelope (live member facts)
+                   "2605312345"]  ; kotoba Datom = canonical state
+ :actor/labor
+ {:isic   "N8299"
+  :isco   ["3343" "4312"]
+  :unspsc ["80161500"]
+  :lps-rank nil}
+
+ :actor/charter-rider {:rider/version "3.1" :rider/applied true}
+
+ :actor/adapter-tiers ; delegated to karakuri (ADR-2606039200) — kaiyaku composes, never re-implements
+ [{:tier/id "T1" :tier/kind :official-api :tier/preference 1 :tier/note "service's published cancellation API on the member's own account"}
+  {:tier/id "T2" :tier/kind :headless-browser :tier/engine :browser-use :tier/preference 2 :tier/note "ToS-permitted browser-use plan over the member's OWN session; :prohibited/:unknown browser stance refuses T2 by construction (plan.py select_tier); evasion verbs unrepresentable"}
+  {:tier/id "T3" :tier/kind :self-submit :tier/preference 3 :tier/note "generated 解約/退会 procedure + notice text; the MEMBER submits it themselves (toritsugi/kurashimori default-self-submit); always available"}]
+
+ :actor/gates
+ [{:gate/id "G1" :gate/name "member-principal-own-ties-only" :gate/req "the 縁-ledger holds ONLY the member's own service ties under member consent; live per-member facts encrypted (com.etzhayyim.encrypted.*); R0 ships a SYNTHETIC demo ledger; never a third party's accounts"}
+  {:gate/id "G2" :gate/name "edge-primary-no-score-of-member" :gate/req "burden/recommendation live ONLY on ties, computed on READ (transient datoms); no per-member score, no 'toxic person' rating (反個人主義)"}
+  {:gate/id "G3" :gate/name "tos-honest-no-detection-evasion" :gate/req "T2 only where the service browser stance permits; captcha-solve/proxy-rotate/stealth/rate-limit-bypass/fingerprint-spoof structurally unrepresentable (plan.py _make_step raises)"}
+  {:gate/id "G4" :gate/name "murakumo-only" :gate/req "any LLM step (billing-mail classification upstream, narration) via LiteLLM 127.0.0.1:4000 only (ADR-2605215000)"}
+  {:gate/id "G5" :gate/name "destructive-member-sig-dry-run" :gate/req "解約/退会 is destructive: every plan requires member-sig + explicit dry-run confirm; export-own-data before closure (portability)"}
+  {:gate/id "G6" :gate/name "outward-gated" :gate/req "ANY live cancellation execution (T1/T2 call, T3 dispatch) Council Lv6+ + operator gated; R0 = analyze/plan/dry-run only (plan.py execute() raises)"}
+  {:gate/id "G7" :gate/name "ingest-consent-gated" :gate/req "live ledger ingest (mailer inboundEmail Follow, organizer subscriptionItem, card-statement export) is member-consent + Council-gated; R0 seed is synthetic"}
+  {:gate/id "G8" :gate/name "cost-of-severance-honesty" :gate/req "notice period / 違約金 / cooling-off rights carried into every readout + plan; kaiyaku never plans around a contractual or legal obligation; thresholds are the DISCLOSED organizer rules, not invented"}
+  {:gate/id "G9" :gate/name "kotoba-eavt-audit" :gate/req "every readout + plan + (future) execution is a Datom on the append-only log; the member can audit exactly what kaiyaku touched"}]
+
+ :actor/non-goals
+ [{:ng/id "N1" :ng/req "NOT a human-relationship severance tool: a tie target is always a SERVICE (:svc/*), never a person; no contact-blocking, no relationship scoring; members seeking help with harmful human relationships route to kokoro 心 (support, ADR-2605263700)"}
+  {:ng/id "N2" :ng/req "no detection-evasion / anti-bot circumvention / retention-flow trickery (G3)"}
+  {:ng/id "N3" :ng/req "no debt evasion / 取立 / chargeback abuse: contractual notice + penalty obligations are surfaced and honored, never circumvented (kurashimori owns クーリングオフ/返金 rights)"}
+  {:ng/id "N4" :ng/req "no third-party account operation, no credential custody (no-server-key, ADR-2605231525)"}
+  {:ng/id "N5" :ng/req "not a mass-unsubscribe / spam-complaint bot; one member, their own ties, member-approved one by one"}
+  {:ng/id "N6" :ng/req "no financial advice: recoverable ¥/mo is arithmetic over the member's own ledger, never a recommendation about money beyond the tie itself"}]
+
+ :actor/r1 ; R1 execution-leg (ADR-2606112201 R1): capability-gated, dry-run, NO live I/O — the
+           ; driver authorizes, a post-R1 component executes (G6). Every file here exists on disk
+           ; (manifest↔methods parity is test-enforced).
+ {:capability {:method "src/kaiyaku/methods/cap.cljc" :tool "src/kaiyaku/tools/issue_capability.cljc"
+               :model :revocable-cacao-leash
+               :note "member-presented CACAO; `approved` svc-id allowlist = G5 in the leash; present-only — kaiyaku never signs (no-server-key, ADR-2605231525)"}
+  :driver     {:method "src/kaiyaku/methods/driver.cljc"
+               :note "authorize-never-execute membrane; cascade ordering + exactly-once; executed=false ALWAYS (G6); surfaces disclosed procedure + g8_drift to the member"}
+  :catalog    {:method "src/kaiyaku/methods/catalog.cljc" :data "data/cancel-procedures.kotoba.edn"
+               :note "real-service 解約 procedures; operator-verified=false (:representative, G6); derive-tier ≡ plan/select-tier (no data↔logic drift)"}
+  :receipt    {:method "src/kaiyaku/methods/receipt.cljc"
+               :note "catalog + authorization-receipt datoms → kotoba commit-DAG (G9 audit, verify-chain); a credential is NEVER stored (refused at emit)"}
+  :handoff    {:method "src/kaiyaku/methods/karakuri_bridge.cljc"
+               :note "plan → karakuri com.etzhayyim.karakuri.serviceOp; validated vs karakuri's OWN lexicon (tier-scheme + enum parity, no-drift)"}
+  :pipeline   {:method "src/kaiyaku/methods/pipeline.cljc"
+               :note "analyze→plan→enrich→dispatch→serviceop→receipt end-to-end, dry-run (integration-tested)"}
+  :audit      {:method "src/kaiyaku/methods/audit.cljc"
+               :note "G9 READ side: fold the receipt log back into entity views + query; standing G6 verification (no receipt ever records a live execution: executed=0, server-signed=0)"}}
+
+ :actor/cells ; langgraph→WASM; .solve() raises at R0 (scaffold follow-up)
+ [{:cell/id "ledger_ingest"   :cell/kind :langgraph :cell/runtime :wasm :cell/node "reuben"}
+  {:cell/id "enkiri_analyze"  :cell/kind :langgraph :cell/runtime :wasm :cell/node "simeon"}
+  {:cell/id "severance_plan"  :cell/kind :langgraph :cell/runtime :wasm :cell/node "levi"}
+  {:cell/id "member_approve"  :cell/kind :langgraph :cell/runtime :wasm :cell/node "judah"}
+  {:cell/id "cancel_execute"  :cell/kind :langgraph :cell/runtime :wasm :cell/node "zebulun"}]
+
+ :actor/impl-lanes ; one ADR, same gates, two runnable lanes
+ [{:lane/id :cljc :lane/path "src/kaiyaku/methods/" :lane/runtime :cljc}
+  {:lane/id :cljc :lane/path "clj/" :lane/runtime :langgraph-clj
+   :lane/note "Clojure LangGraph actor: ingest→analyze→plan→‖member-sig interrupt‖→rehearse; T2 dry-run rehearsal via browser-use-clj/computer-use-clj over INJECTED mock surfaces; murakumo-model loopback-only (G4)"
+   :lane/deps ["io.github.com-junkawasaki/langgraph-clj"
+               "io.github.com-junkawasaki/browser-use-clj"
+               "io.github.com-junkawasaki/computer-use-clj"]}]
+
+ :actor/lex
+ [{:lex/id "tieRecord"}        ; com.etzhayyim.apps.kaiyaku.tieRecord
+  {:lex/id "enkiriReadout"}    ; com.etzhayyim.apps.kaiyaku.enkiriReadout (transient)
+  {:lex/id "severancePlan"}    ; com.etzhayyim.apps.kaiyaku.severancePlan
+  {:lex/id "severanceJob"}]}   ; com.etzhayyim.apps.kaiyaku.severanceJob (status: pending/approved/executed/confirmed)

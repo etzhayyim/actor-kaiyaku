@@ -1,0 +1,118 @@
+(ns kaiyaku.tests.test-analyze
+  "kaiyaku 解約 — analyzer tests (ADR-2606112201). 1:1 Clojure port of tests/test_analyze.py.
+
+  Verifies the constitutional invariants empirically:
+    - ledger loads (nodes + 縁), seed is non-trivial and synthetic/representative only
+    - G1: member-side facts are :synthetic, services :representative/:authoritative; no PII
+    - N1: every member-tie points at a SERVICE, never a person
+    - G2 edge-primary: burden is recomputed independently per tie and asserted equal;
+      there is no per-member aggregate score in the readout (反個人主義)
+    - disclosed thresholds: unused-paid → :sever, dormant cost-free account → :sever,
+      used tie → :keep
+    - cascade-guard: a sever-able service with dependents downgrades to :review-cascade
+    - recoverable aggregate = Σ :sever monthly cost
+
+  NOTE on scope: the Python test_analyze additionally exercises the `datom_emit` sibling
+  (test_datoms_ground_and_transient + test_determinism). Those two assertions depend on the
+  unported `datom_emit` module, so they are intentionally omitted here (the datom_emit port
+  is a separate unit, mirroring the inochi/rasen precedent). All seven PURE analyze
+  assertions are ported 1:1."
+  (:require [clojure.test :refer [deftest is run-tests]]
+            [clojure.string :as str]
+            [clojure.java.io :as io]
+            [kaiyaku.methods.analyze :as analyze]))
+
+(def actor-dir (io/file "."))
+(def seed (io/file actor-dir "data" "seed-en-ledger.kotoba.edn"))
+
+(defn load-seed [] (analyze/load-file* seed))
+
+(defn- num-or
+  "float(e.get(k, 0) or 0) for tests."
+  [m k]
+  (let [v (get m k)]
+    (if (or (nil? v) (false? v) (and (number? v) (zero? v))) 0.0 (double v))))
+
+(deftest test-load-nontrivial
+  (let [{:keys [nodes edges]} (load-seed)]
+    (is (>= (count nodes) 9) (str "expected a real seed, got " (count nodes) " nodes"))
+    (is (>= (count edges) 10) (str "expected a real 縁 ledger, got " (count edges) " edges"))
+    (doseq [e edges]
+      (is (contains? nodes (get e ":en/from")) (str "dangling from: " (get e ":en/from")))
+      (is (contains? nodes (get e ":en/to")) (str "dangling to: " (get e ":en/to"))))))
+
+(deftest test-synthetic-only-no-pii
+  ;; G1: member-side facts are :synthetic; services :representative. No real PII.
+  (let [{:keys [nodes]} (load-seed)]
+    (doseq [n (vals nodes)]
+      (if (contains? n ":member/id")
+        (is (= ":synthetic" (get n ":member/sourcing")))
+        (is (contains? #{":representative" ":authoritative"} (get n ":svc/sourcing")))))))
+
+(deftest test-ties-are-services-never-persons
+  ;; N1: 縁切り here is member↔SERVICE only — a tie target is always a :svc/* node.
+  (let [{:keys [nodes edges]} (load-seed)]
+    (doseq [e edges]
+      (when (str/starts-with? (get e ":en/from") "member:")
+        (is (contains? (get nodes (get e ":en/to")) ":svc/id")
+            (str "member tie to non-service: " (get e ":en/to")))))))
+
+(deftest test-edge-primary-burden
+  ;; G2: burden = cost × unused-fraction + dormancy, recomputed independently.
+  (let [{:keys [nodes edges]} (load-seed)
+        res (analyze/analyze nodes edges)
+        by-svc (reduce (fn [m t] (assoc m (get t "svc") t)) {} (get res "ties"))]
+    (doseq [e edges]
+      (when (contains? #{":subscribes" ":holds-account" ":recurring-charge"} (get e ":en/kind"))
+        (let [cost (num-or e ":en/monthly-cost-jpy")
+              usage (num-or e ":en/usage-score")
+              last (min (num-or e ":en/last-used-days") 1000.0)
+              expect (-> (java.math.BigDecimal.
+                          (double (+ (* cost (- 1 (/ (min usage 100.0) 100.0))) (/ last 1000.0))))
+                         (.setScale 4 java.math.RoundingMode/HALF_EVEN)
+                         double)]
+          (is (< (Math/abs (- (get (get by-svc (get e ":en/to")) "burden") expect)) 1e-9))
+          (is (= (get (get by-svc (get e ":en/to")) "burden") (analyze/burden e))))))
+    ;; 反個人主義: the readout carries NO per-member score key
+    (is (not (some #(str/starts-with? % "member_score") (keys res))) (str (keys res)))))
+
+(deftest test-disclosed-thresholds
+  (let [{:keys [nodes edges]} (load-seed)
+        res (analyze/analyze nodes edges)
+        by-svc (reduce (fn [m t] (assoc m (get t "svc") t)) {} (get res "ties"))]
+    ;; unused paid video sub (usage 4, ¥1980) — :sever (video-a depends on bank-i, has no
+    ;; dependents itself → plain :sever)
+    (is (= ":sever" (get (get by-svc "svc:video-a") "recommendation")))
+    ;; gym: usage 10 < 20, cost 8800 > 500 → :sever (no dependents)
+    (is (= ":sever" (get (get by-svc "svc:gym-b") "recommendation")))
+    ;; well-used SaaS → :keep
+    (is (= ":keep" (get (get by-svc "svc:saas-c") "recommendation")))
+    ;; news usage 35 < 50 → :review
+    (is (= ":review" (get (get by-svc "svc:news-d") "recommendation")))
+    ;; dormant cost-free SNS account 420d → :sever (退会候補)
+    (is (= ":sever" (get (get by-svc "svc:sns-e") "recommendation")))
+    ;; unknown recurring card charge, usage 0, ¥550 → :sever
+    (is (= ":sever" (get (get by-svc "svc:merchant-g") "recommendation")))
+    ;; active bank account → :keep
+    (is (= ":keep" (get (get by-svc "svc:bank-i") "recommendation")))))
+
+(deftest test-cascade-guard
+  ;; 依存 detection: legacy email F is dormant BUT two services SSO through it —
+  ;; a :sever must downgrade to :review-cascade, never auto-sever.
+  (let [{:keys [nodes edges]} (load-seed)
+        res (analyze/analyze nodes edges)
+        by-svc (reduce (fn [m t] (assoc m (get t "svc") t)) {} (get res "ties"))
+        f (get by-svc "svc:mail-f")]
+    (is (= ["svc:cloud-h" "svc:sns-e"] (get f "dependents")))
+    (is (= ":review-cascade" (get f "recommendation")))))
+
+(deftest test-recoverable-aggregate
+  (let [{:keys [nodes edges]} (load-seed)
+        res (analyze/analyze nodes edges)
+        sever-sum (reduce + 0.0 (map #(get % "monthly_cost_jpy")
+                                     (filter #(= ":sever" (get % "recommendation"))
+                                             (get res "ties"))))]
+    (is (= (get res "recoverable_monthly_jpy")
+           (-> (java.math.BigDecimal. (double sever-sum))
+               (.setScale 2 java.math.RoundingMode/HALF_EVEN) double)))
+    (is (> (get res "recoverable_monthly_jpy") 0))))

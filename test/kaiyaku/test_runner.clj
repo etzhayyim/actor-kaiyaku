@@ -1,0 +1,7 @@
+(ns kaiyaku.test-runner (:require [clojure.java.io :as io] [clojure.test :as test]))
+(def integration-suites
+  '#{kaiyaku.tests.test-handoff kaiyaku.tests.test-manifest
+     kaiyaku.tests.test-pipeline kaiyaku.tests.test-maturity
+     kaiyaku.tests.test-karakuri-bridge kaiyaku.tests.test-kotoba})
+(defn suites [] (->> (file-seq (io/file "test")) (filter #(and (.isFile %) (re-matches #".*test.*\.clj[cs]?" (.getName %)))) (keep #(some-> (re-find #"\(ns\s+([^\s\)]+)" (slurp %)) second symbol)) (remove (conj integration-suites 'kaiyaku.test-runner)) distinct sort vec))
+(defn -main [& _] (let [xs (suites)] (doseq [x xs] (require x)) (let [{:keys [fail error]} (apply test/run-tests xs)] (shutdown-agents) (System/exit (if (zero? (+ fail error)) 0 1)))))

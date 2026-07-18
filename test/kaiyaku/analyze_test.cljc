@@ -1,0 +1,70 @@
+(ns kaiyaku.analyze-test
+  "Parity + gate tests for kaiyaku.analyze (numbers mirror methods/analyze.py
+  over the same synthetic seed)."
+  (:require [clojure.test :refer [deftest is testing]]
+            [kaiyaku.ledger :as ledger]
+            [kaiyaku.analyze :as analyze]))
+
+(def seed-path "data/seed-en-ledger.kotoba.edn")
+
+(defn graph [] (ledger/parse #?(:clj (slurp seed-path)
+                                :cljs (throw (ex-info "host must inject the seed" {})))))
+
+(defn tie [res svc] (first (filter #(= svc (:svc %)) (:ties res))))
+
+(deftest seed-parses
+  (let [{:keys [nodes edges]} (graph)]
+    (is (= 10 (count nodes)))   ; 9 services + 1 synthetic member
+    (is (= 12 (count edges)))   ; 9 member ties + 3 :depends-on
+    (testing "G1 — committed seed is fully synthetic on the member side"
+      (is (every? #(= :synthetic (:en/sourcing %)) edges)))))
+
+(deftest n1-person-nodes-unrepresentable
+  (testing "N1 — a person/contact node kind throws at parse"
+    (is (thrown-with-msg?
+         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"N1"
+         (ledger/parse "[{:person/id \"p1\" :person/label \"someone\"}]")))
+    (is (thrown-with-msg?
+         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"N1"
+         (ledger/parse "[{:contact/id \"c1\"}]")))))
+
+(deftest python-parity
+  (let [res (analyze/analyze (graph))]
+    (testing "counts mirror methods/analyze.py over the same seed"
+      (is (= {:keep 2 :review 1 :review-cascade 1 :sever 5} (:counts res))))
+    (testing "totals (G8 — arithmetic over the member's own ledger, N6)"
+      (is (= 14810.0 (:total-monthly-jpy res)))
+      (is (= 12630.0 (:recoverable-monthly-jpy res))))
+    (testing "burden = waste + dormancy, computed on read (G2)"
+      (is (= 1901.01 (:burden (tie res "svc:video-a"))))
+      (is (= 7920.15 (:burden (tie res "svc:gym-b")))))
+    (testing "ordering: highest burden first"
+      (is (= "svc:gym-b" (:svc (first (:ties res))))))))
+
+(deftest recommendations
+  (let [res (analyze/analyze (graph))]
+    (testing "disclosed organizer thresholds (G8)"
+      (is (= :sever  (:recommendation (tie res "svc:video-a"))))   ; usage 4, ¥1980
+      (is (= :keep   (:recommendation (tie res "svc:saas-c"))))    ; usage 92
+      (is (= :review (:recommendation (tie res "svc:news-d")))))   ; usage 35
+    (testing "dormant cost-free accounts (退会候補)"
+      (is (= :sever (:recommendation (tie res "svc:sns-e"))))      ; 420d ≥ 365
+      (is (= :keep  (:recommendation (tie res "svc:bank-i")))))    ; 3d
+    (testing "unrecognized recurring card charge"
+      (is (= :sever (:recommendation (tie res "svc:merchant-g")))))))
+
+(deftest cascade-guard
+  (let [res (analyze/analyze (graph))
+        mail (tie res "svc:mail-f")]
+    (testing ":sever on a service with dependents downgrades to :review-cascade"
+      (is (= :review-cascade (:recommendation mail)))
+      (is (= ["svc:cloud-h" "svc:sns-e"] (:dependents mail))))
+    (testing "a :keep with dependents is NOT downgraded"
+      (is (= :keep (:recommendation (tie res "svc:bank-i")))))))
+
+(deftest edge-primary-no-member-score
+  (testing "G2 — the readout carries NO per-member aggregate or member score key"
+    (let [res (analyze/analyze (graph))]
+      (is (not-any? #(or (:member-score %) (:member/score %)) (:ties res)))
+      (is (nil? (:member-score res)))
+      (is (every? #(contains? % :burden) (:ties res))))))

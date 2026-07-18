@@ -1,0 +1,4 @@
+# runtime append-only enkiri (縁-ledger) ledger (content-addressed commit-DAG) +
+# generated readouts — machine-local, resume-safe, regenerable; never committed.
+data/persisted/
+out/

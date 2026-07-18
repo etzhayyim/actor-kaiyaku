@@ -1,0 +1,96 @@
+(ns kaiyaku.tests.test-charter-invariants
+  "kaiyaku 解約 — CONSOLIDATED charter-invariant tests (ADR-2606112201, the ibuki
+  test_charter_invariants pattern). The per-module suites test each piece; this
+  file pins the ACTOR'S CONSTITUTIONAL GUARANTEES in one authoritative place, so a
+  regression in any module that weakened a hard gate is caught here too.
+
+  Invariants asserted across the whole R1 leg:
+    G3  — detection-evasion is structurally unrepresentable (plan); ToS-honest
+    G5  — severance needs a member capability (driver refuses without one)
+    G6  — NO live execution path: plan/execute raises; no descriptor/receipt is
+          ever executed=true; the audit log verifies clean
+    G3/no-server-key — a credential is never stored in a receipt; never server-signed
+    G8  — cost-of-severance is carried (catalog notice/penalty are numbers)
+    N1  — a tie target is always a SERVICE, never a person (no :person/* anywhere)"
+  (:require [clojure.test :refer [deftest is run-tests]]
+            [clojure.java.io :as io]
+            [kaiyaku.methods.plan :as plan]
+            [kaiyaku.methods.driver :as driver]
+            [kaiyaku.methods.catalog :as catalog]
+            [kaiyaku.methods.receipt :as receipt]
+            [kaiyaku.methods.audit :as audit]
+            [kaiyaku.methods.pipeline :as pipeline]))
+
+(def actor-dir (io/file "."))
+(defn- entries [] (catalog/load-file* (io/file actor-dir "data" "cancel-procedures.kotoba.edn")))
+
+;; ── G3 — detection-evasion unrepresentable ──────────────────────────────────
+
+(deftest g3-every-evasion-verb-raises
+  (doseq [v plan/evasion-verbs]
+    (is (thrown? clojure.lang.ExceptionInfo (plan/make-step v "x"))
+        (str "evasion verb must be unrepresentable: " v)))
+  ;; and none leaks into a disclosed catalog procedure
+  (let [{:keys [ok? errors]} (catalog/validate (entries))]
+    (is ok? (str "catalog must be evasion-free / valid: " (pr-str errors)))))
+
+;; ── G6 — no live execution path anywhere ────────────────────────────────────
+
+(deftest g6-no-live-execution
+  ;; plan/execute is the R0 contract: it raises, full stop.
+  (is (thrown? clojure.lang.ExceptionInfo (plan/execute {})))
+  ;; the driver authorizes but never executes — over the whole seed pipeline,
+  ;; with a capability approving everything, no descriptor is executed=true.
+  (let [r (pipeline/run-seed actor-dir
+                             :bundle {"cacao_b64" "x" "aud" "did:web:etzhayyim.com"
+                                      "capability" "service:cancel" "graph" "graph:kaiyaku"
+                                      "exp" 9999999999 "nonce" "n"
+                                      "approved" ["svc:saas-c" "svc:cloud-h" "svc:video-a"
+                                                  "svc:news-d" "svc:mail-f" "svc:bank-i"]}
+                             :now-epoch 1000)]
+    (is (every? #(false? (get % "executed")) (:descriptors r)))))
+
+(deftest g6-audit-log-verifies-clean
+  (let [p (str (System/getProperty "java.io.tmpdir") "/kaiyaku-charter-" (gensym) ".edn")]
+    (try
+      (pipeline/operator-self-check! actor-dir p)
+      (is (true? (audit/no-live-execution? (audit/receipts p))))
+      (finally (io/delete-file p true)))))
+
+;; ── G5 — severance needs a member capability ────────────────────────────────
+
+(deftest g5-no-capability-no-authorization
+  (let [r (pipeline/run-seed actor-dir)]   ; nil capability
+    (is (every? #(false? (get % "authorized")) (:descriptors r)))))
+
+;; ── G3/no-server-key — credentials never stored / never server-signed ───────
+
+(deftest g3-receipts-never-store-credentials-or-server-sign
+  ;; a credential-shaped value is refused at emit
+  (is (thrown? clojure.lang.ExceptionInfo
+               (receipt/receipt-datoms [{"svc" "a" "status" "cacao_b64:leak" "authorized" true}] "T0")))
+  ;; clean receipts are never server-signed
+  (let [ds (receipt/receipt-datoms [{"svc" "a" "authorized" true "status" ":authorized-dry-run"
+                                     "authorized_by" "member"}] "T0")]
+    (is (some (fn [[_ _ a v]] (and (= a ":kaiyaku.receipt/server-signed") (false? v))) ds))))
+
+;; ── G8 — cost-of-severance carried ──────────────────────────────────────────
+
+(deftest g8-cost-of-severance-numeric-everywhere
+  (doseq [e (entries)]
+    (is (number? (:proc/notice-days e)))
+    (is (number? (:proc/penalty-jpy e)))))
+
+;; ── N1 — a tie target is a SERVICE, never a person ──────────────────────────
+
+(deftest n1-no-person-anywhere
+  ;; catalog entries carry no person attribute
+  (doseq [e (entries)]
+    (is (not-any? #(clojure.string/includes? (str %) "person") (keys e))))
+  ;; the seed ledger declares no :person/* node kind
+  (let [seed (slurp (io/file actor-dir "data" "seed-en-ledger.kotoba.edn"))]
+    (is (not (clojure.string/includes? seed ":person/")))))
+
+(defn -main [& _]
+  (let [{:keys [fail error]} (run-tests 'kaiyaku.tests.test-charter-invariants)]
+    (System/exit (if (zero? (+ fail error)) 0 1))))

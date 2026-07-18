@@ -1,0 +1,47 @@
+(ns kaiyaku.tests.test-manifest
+  "kaiyaku 解約 — manifest↔implementation parity tests (ADR-2606112201 R1).
+
+  The manifest documents the actor; these pin it to the code so the doc can't drift:
+    - every file the :actor/r1 block references (method / tool / data) EXISTS on disk
+    - :actor/adapter-tiers ids == the karakuri-bridge tier->adapter scheme (manifest↔code)
+    - those tier ids also map onto karakuri's OWN serviceOp lexicon enum (manifest↔karakuri)
+    - the cancel_execute cell (the driver-backed execution cell) is declared"
+  (:require [clojure.test :refer [deftest is run-tests]]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [kaiyaku.methods.karakuri-bridge :as kb]))
+
+(def actor-dir (io/file "."))
+(defn- manifest [] (edn/read-string (slurp (io/file actor-dir "manifest.edn"))))
+
+(deftest test-r1-block-present
+  (is (map? (:actor/r1 (manifest))))
+  (is (= #{:capability :driver :catalog :receipt :handoff :pipeline :audit}
+         (set (keys (:actor/r1 (manifest)))))))
+
+(deftest test-r1-referenced-files-exist
+  ;; every :method / :tool / :data path in the r1 block must resolve to a real file.
+  (doseq [[component spec] (:actor/r1 (manifest))
+          [k path] spec
+          :when (#{:method :tool :data} k)]
+    (is (.exists (io/file actor-dir path))
+        (str component " " k " → missing file " path))))
+
+(deftest test-adapter-tiers-match-bridge
+  ;; manifest tier ids ⇔ karakuri-bridge scheme keys (no drift between doc and code).
+  (let [m-tiers (set (map :tier/id (:actor/adapter-tiers (manifest))))]
+    (is (= m-tiers (set (keys kb/tier->adapter))))))
+
+(deftest test-adapter-tiers-map-to-karakuri-lexicon
+  (let [lex (kb/lexicon (io/file (.getParentFile actor-dir) "karakuri" "lex" "serviceOp.edn"))]
+    (is (kb/tier-scheme-aligned? lex)
+        "manifest/bridge tiers must map exactly onto karakuri's adapterTier enum")))
+
+(deftest test-cancel-execute-cell-declared
+  (let [cells (set (map :cell/id (:actor/cells (manifest))))]
+    (is (contains? cells "cancel_execute"))
+    (is (contains? cells "member_approve"))))   ; the G5 member-sig interrupt cell
+
+(defn -main [& _]
+  (let [{:keys [fail error]} (run-tests 'kaiyaku.tests.test-manifest)]
+    (System/exit (if (zero? (+ fail error)) 0 1))))

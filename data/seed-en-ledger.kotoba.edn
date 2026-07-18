@@ -1,0 +1,110 @@
+;; kaiyaku 解約 — SYNTHETIC representative 縁-ledger seed (ADR-2606112201).
+;; G1: every member-side fact here is :synthetic — a FICTIONAL demo member, no real PII.
+;; Services are :representative — a bounded, honest subset of common service shapes
+;; (video sub / gym / SaaS / news / dormant SNS / legacy email-as-SSO / unknown card
+;; merchant / duplicate cloud storage). Coverage of the real service universe is ~0 by
+;; design; live per-member ingest is G7-gated (organizer/mailer Follow + member consent).
+;;
+;; Nodes: :svc/* (service) + :member/* (synthetic demo member).
+;; 縁:    :en/* edges member→service (:subscribes / :holds-account / :recurring-charge)
+;;        and service→service (:depends-on — SSO / payment-method dependency, the
+;;        cascade-guard input).
+
+[{:member/id "member:synthetic-demo"
+  :member/label "Synthetic Demo Member"
+  :member/sourcing :synthetic}
+
+ ;; ── services (representative shapes) ─────────────────────────────────────────
+ {:svc/id "svc:video-a" :svc/label "Video Streaming A" :svc/kind :subscription
+  :svc/category "entertainment" :svc/sourcing :representative
+  :svc/cancel {:api :none :browser :permitted :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ {:svc/id "svc:gym-b" :svc/label "Gym Membership B" :svc/kind :subscription
+  :svc/category "fitness" :svc/sourcing :representative
+  :svc/cancel {:api :none :browser :prohibited :self-submit true}
+  :svc/notice-days 30 :svc/penalty-jpy 5000}
+
+ {:svc/id "svc:saas-c" :svc/label "Notes SaaS C" :svc/kind :subscription
+  :svc/category "productivity" :svc/sourcing :representative
+  :svc/cancel {:api :available :browser :permitted :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ {:svc/id "svc:news-d" :svc/label "News Paywall D" :svc/kind :subscription
+  :svc/category "news" :svc/sourcing :representative
+  :svc/cancel {:api :none :browser :permitted :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ {:svc/id "svc:sns-e" :svc/label "SNS E (dormant)" :svc/kind :account
+  :svc/category "social" :svc/sourcing :representative
+  :svc/cancel {:api :none :browser :prohibited :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ {:svc/id "svc:mail-f" :svc/label "Legacy Email F" :svc/kind :account
+  :svc/category "email" :svc/sourcing :representative
+  :svc/cancel {:api :none :browser :permitted :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ {:svc/id "svc:merchant-g" :svc/label "Unknown Card Merchant G" :svc/kind :card-merchant
+  :svc/category "unknown" :svc/sourcing :representative
+  :svc/cancel {:api :none :browser :unknown :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ {:svc/id "svc:cloud-h" :svc/label "Cloud Storage H (duplicate)" :svc/kind :subscription
+  :svc/category "storage" :svc/sourcing :representative
+  :svc/cancel {:api :available :browser :permitted :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ {:svc/id "svc:bank-i" :svc/label "Net Bank I" :svc/kind :account
+  :svc/category "finance" :svc/sourcing :representative
+  :svc/cancel {:api :none :browser :prohibited :self-submit true}
+  :svc/notice-days 0 :svc/penalty-jpy 0}
+
+ ;; ── 縁 member→service (the ties; severance decision lives HERE, edge-primary) ──
+ {:en/from "member:synthetic-demo" :en/to "svc:video-a" :en/kind :subscribes
+  :en/monthly-cost-jpy 1980 :en/usage-score 4 :en/last-used-days 210
+  :en/first-seen "2024-03" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:gym-b" :en/kind :subscribes
+  :en/monthly-cost-jpy 8800 :en/usage-score 10 :en/last-used-days 150
+  :en/first-seen "2023-11" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:saas-c" :en/kind :subscribes
+  :en/monthly-cost-jpy 1200 :en/usage-score 92 :en/last-used-days 0
+  :en/first-seen "2022-06" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:news-d" :en/kind :subscribes
+  :en/monthly-cost-jpy 980 :en/usage-score 35 :en/last-used-days 12
+  :en/first-seen "2025-01" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:sns-e" :en/kind :holds-account
+  :en/monthly-cost-jpy 0 :en/usage-score 0 :en/last-used-days 420
+  :en/first-seen "2019-05" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:mail-f" :en/kind :holds-account
+  :en/monthly-cost-jpy 0 :en/usage-score 2 :en/last-used-days 400
+  :en/first-seen "2015-02" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:merchant-g" :en/kind :recurring-charge
+  :en/monthly-cost-jpy 550 :en/usage-score 0 :en/last-used-days 9999
+  :en/first-seen "2025-09" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:cloud-h" :en/kind :subscribes
+  :en/monthly-cost-jpy 1300 :en/usage-score 15 :en/last-used-days 90
+  :en/first-seen "2024-08" :en/sourcing :synthetic}
+
+ {:en/from "member:synthetic-demo" :en/to "svc:bank-i" :en/kind :holds-account
+  :en/monthly-cost-jpy 0 :en/usage-score 60 :en/last-used-days 3
+  :en/first-seen "2020-10" :en/sourcing :synthetic}
+
+ ;; ── 縁 service→service (依存 — cascade-guard; severing the target breaks the source) ──
+ ;; SNS-E and Cloud-H sign in via Legacy Email F (SSO): severing F cascades.
+ {:en/from "svc:sns-e" :en/to "svc:mail-f" :en/kind :depends-on
+  :en/dep "sso" :en/sourcing :synthetic}
+
+ {:en/from "svc:cloud-h" :en/to "svc:mail-f" :en/kind :depends-on
+  :en/dep "sso" :en/sourcing :synthetic}
+
+ ;; Video-A is charged through Net Bank I's card (payment-method dependency).
+ {:en/from "svc:video-a" :en/to "svc:bank-i" :en/kind :depends-on
+  :en/dep "payment-method" :en/sourcing :synthetic}]

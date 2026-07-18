@@ -1,0 +1,7 @@
+;; kotoba.app.edn — actor:kaiyaku KOTOBA Mesh application manifest (service concierge on-http, SERVICE-MESH-PATTERN.md).
+{:kotoba.app/name    "kaiyaku"
+ :kotoba.app/version "0.1.0"
+ :kotoba.app/components
+ [{:name "kaiyaku" :src "src/kaiyaku/methods/mesh.clj" :scale 1
+   :triggers [{:type :http :route "/kaiyaku"}] :requires #{:cap/kqe}}]
+ :kotoba.app/placement {:spread :zone :require {:tier "edge"}}}

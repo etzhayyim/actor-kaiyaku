@@ -1,0 +1,100 @@
+(ns kaiyaku.tests.test-plan
+  "kaiyaku 解約 — severance-plan tests (ADR-2606112201). 1:1 Clojure port of tests/test_plan.py.
+
+  Verifies the executor gates empirically:
+    - safest-first tier routing: api → T1, browser-permitted → T2, else T3
+    - G3: a :prohibited/:unknown browser stance NEVER yields T2; evasion verbs raise
+    - cascade ties plan a rehome-dependency step FIRST
+    - G8: notice/penalty are carried into the plan (cost-of-severance honesty)
+    - G5/G6: every plan demands member-sig + dry-run + Council gate; execute raises
+    - only :sever / :review-cascade ties are plannable (:keep refuses)"
+  (:require [clojure.test :refer [deftest is run-tests]]
+            [clojure.java.io :as io]
+            [kaiyaku.methods.analyze :as analyze]
+            [kaiyaku.methods.plan :as plan]))
+
+(def actor-dir (io/file "."))
+(def seed (io/file actor-dir "data" "seed-en-ledger.kotoba.edn"))
+
+(defn- ctx
+  "Returns [nodes ties-by-svc]."
+  []
+  (let [{:keys [nodes edges]} (analyze/load-file* seed)
+        res (analyze/analyze nodes edges)]
+    [nodes (reduce (fn [m t] (assoc m (get t "svc") t)) {} (get res "ties"))]))
+
+(deftest test-tier-routing
+  (let [[nodes _] (ctx)]
+    (is (= "T1" (plan/select-tier (get nodes "svc:saas-c"))))      ; api :available
+    (is (= "T2" (plan/select-tier (get nodes "svc:video-a"))))     ; browser :permitted
+    (is (= "T3" (plan/select-tier (get nodes "svc:gym-b"))))       ; browser :prohibited
+    (is (= "T3" (plan/select-tier (get nodes "svc:merchant-g")))))) ; browser :unknown → refuse T2
+
+(deftest test-prohibited-browser-never-t2
+  ;; G3 by construction: no input shape with :browser :prohibited returns T2.
+  (let [[nodes _] (ctx)]
+    (doseq [svc (vals nodes)]
+      (let [cancel (or (get svc ":svc/cancel") {})]
+        (when (contains? #{":prohibited" ":unknown"} (get cancel ":browser"))
+          (is (not= "T2" (plan/select-tier svc)) (str (get svc ":svc/id"))))))))
+
+(deftest test-evasion-unrepresentable
+  (doseq [verb (sort plan/evasion-verbs)]
+    (is (thrown? clojure.lang.ExceptionInfo (plan/make-step verb "x"))
+        (str "evasion verb '" verb "' was representable"))))
+
+(deftest test-cascade-rehome-first
+  (let [[nodes ties] (ctx)
+        p (plan/build-plan (get nodes "svc:mail-f") (get ties "svc:mail-f"))]
+    (is (= ":review-cascade" (get p "recommendation")))
+    (is (= "rehome-dependency" (get (first (get p "steps")) "verb")))
+    (let [rehomes (filter #(= "rehome-dependency" (get % "verb")) (get p "steps"))]
+      (is (= 2 (count rehomes)))))) ; sns-e + cloud-h both SSO through mail-f
+
+(deftest test-cost-of-severance-carried
+  (let [[nodes ties] (ctx)
+        p (plan/build-plan (get nodes "svc:gym-b") (get ties "svc:gym-b"))]
+    (is (and (= 30 (get p "notice_days")) (= 5000 (get p "penalty_jpy"))))
+    ;; and no step plans around the obligation
+    (is (every? #(not (clojure.string/includes? (get % "verb") "penalty")) (get p "steps")))))
+
+(deftest test-destructive-gates-and-dry-run
+  (let [[nodes ties] (ctx)
+        p (plan/build-plan (get nodes "svc:video-a") (get ties "svc:video-a"))]
+    (is (= {"member_sig" true "dry_run_confirm" true "council_lv6_operator_gate" true}
+           (get p "requires")))
+    (is (= "dry-run" (get p "mode")))
+    (is (every? #(= "dry-run" (get % "mode")) (get p "steps")))
+    (is (thrown? clojure.lang.ExceptionInfo (plan/execute p))
+        "execute must raise at R0 (G5/G6)")))
+
+(deftest test-keep-not-plannable
+  (let [[nodes ties] (ctx)]
+    (is (thrown? clojure.lang.ExceptionInfo
+                 (plan/build-plan (get nodes "svc:saas-c") (get ties "svc:saas-c"))) ; :keep
+        ":keep tie was plannable")))
+
+(deftest test-plans-cover-all-severables
+  (let [{:keys [nodes edges]} (analyze/load-file* seed)
+        res (analyze/analyze nodes edges)
+        ps (plan/plans nodes edges)
+        want (set (for [t (get res "ties")
+                        :when (contains? #{":sever" ":review-cascade"} (get t "recommendation"))]
+                    (get t "svc")))]
+    (is (= want (set (map #(get % "svc") ps))))
+    ;; steps[-2:-1] = the export-own-data step (second-to-last)
+    (is (every? (fn [p]
+                  (let [steps (get p "steps")
+                        penult (nth steps (- (count steps) 2))]
+                    (= "export-own-data" (get penult "verb"))))
+                ps))))
+
+(deftest test-plans-json-export
+  ;; Wave 40: severance plans の機械可読 JSON.
+  (let [{:keys [nodes edges]} (analyze/load-file* seed)
+        ps (plan/plans nodes edges)]
+    (is (>= (count ps) 5))
+    (is (every? #(and (= "dry-run" (get % "mode")) (contains? % "steps")) ps))))
+
+;; cljc convenience runner
+#?(:clj (defn -main [& _] (run-tests 'kaiyaku.tests.test-plan)))

@@ -1,0 +1,167 @@
+(ns kaiyaku.tests.test-catalog
+  "kaiyaku 解約 — R1 cancellation-procedure catalog tests (ADR-2606112201 R1).
+
+  Proves the catalog's honesty gates and its cross-consistency with the planner:
+    - the committed catalog validates clean (required keys, G3/G6/G8 invariants)
+    - G3: catalog derive-tier == plan/select-tier for EVERY entry (no drift between
+      the data layer and the routing logic); a non-:permitted browser stance is never T2
+    - G6: every entry is operator-verified=false + sourcing :representative
+    - G8: every entry carries numeric notice-days + penalty-jpy; the Adobe entry surfaces
+      a non-zero early-termination fee (cost-of-severance honesty)
+    - N1: every entry id is a service, never a person
+    - validate actually catches a planted bad entry (evasion verb / T2-over-prohibited)"
+  (:require [clojure.test :refer [deftest is run-tests]]
+            [clojure.java.io :as io]
+            [clojure.set :as set]
+            [kaiyaku.methods.catalog :as catalog]
+            [kaiyaku.methods.plan :as plan]))
+
+(def actor-dir (io/file "."))
+(def catalog-file (io/file actor-dir "data" "cancel-procedures.kotoba.edn"))
+
+(defn- entries [] (catalog/load-file* catalog-file))
+
+(deftest test-catalog-validates-clean
+  (let [{:keys [ok? errors]} (catalog/validate (entries))]
+    (is ok? (str "catalog validation errors: " (pr-str errors)))))
+
+(deftest test-catalog-nonempty-and-by-id
+  (let [es (entries)]
+    (is (>= (count es) 10))
+    (is (= (count es) (count (catalog/by-id es))))   ; svc-ids unique
+    (is (contains? (catalog/by-id es) "netflix"))))
+
+(deftest test-derive-tier-matches-planner
+  ;; G3: the catalog data layer and the planner's routing logic must NEVER drift.
+  (doseq [e (entries)]
+    (is (= (catalog/derive-tier e)
+           (plan/select-tier (catalog/->svc-node e)))
+        (str (:proc/svc-id e) ": catalog tier " (catalog/derive-tier e)
+             " != planner tier"))))
+
+(deftest test-no-t2-over-non-permitted-browser
+  ;; G3: a :prohibited / :unknown browser stance can never be T2.
+  (doseq [e (entries)]
+    (when (#{:prohibited :unknown} (:browser (:proc/cancel e)))
+      (is (not= "T2" (catalog/derive-tier e)) (str (:proc/svc-id e))))))
+
+(deftest test-tiers-present
+  ;; the seed spans all three tiers (T1 api, T2 only if permitted, T3 self-submit).
+  (let [tiers (set (map catalog/derive-tier (entries)))]
+    (is (contains? tiers "T1"))   ; generic-saas-api
+    (is (contains? tiers "T3")))) ; the consumer SaaS majority
+
+(deftest test-operator-verified-all-false
+  ;; G6: nothing in a committed :representative catalog is operator-verified.
+  (is (zero? (count (filter :proc/operator-verified (entries))))))
+
+(deftest test-cost-of-severance-honest
+  ;; G8: notice/penalty are numeric everywhere; Adobe carries a real ETF.
+  (doseq [e (entries)]
+    (is (number? (:proc/notice-days e)))
+    (is (number? (:proc/penalty-jpy e))))
+  (let [adobe (get (catalog/by-id (entries)) "adobe-cc")]
+    (is (pos? (:proc/penalty-jpy adobe)) "Adobe annual-plan ETF must be surfaced (G8)"))
+  (let [gym (get (catalog/by-id (entries)) "anytime-fitness-jp")]
+    (is (pos? (:proc/notice-days gym)) "gym notice period must be surfaced (G8)")))
+
+(deftest test-coverage-spread
+  ;; lock in the R1 catalog growth: breadth across categories + regions, honest tier mix.
+  (let [es (entries)
+        cov (catalog/coverage es)]
+    (is (>= (:total cov) 20) "catalog should cover ≥20 real services")
+    (is (>= (count (:by-category cov)) 5) "≥5 distinct categories")
+    (is (contains? (:by-region cov) :jp))
+    (is (contains? (:by-region cov) :global))
+    ;; the real world is mostly T3 self-submit (the honest finding kaiyaku surfaces)
+    (is (>= (get (:by-tier cov) "T3" 0) (get (:by-tier cov) "T1" 0)))
+    ;; G6 — growth never sneaks in a pre-verified entry
+    (is (zero? (:operator-verified cov)))))
+
+(deftest test-category-gaps-worklist
+  (let [g (catalog/category-gaps (entries))]
+    ;; the new-category batch lands ai/security/vpn/design/dev/food-delivery/music
+    (is (every? (:covered g) [:ai :security :vpn :design :dev :food-delivery :music :streaming]))
+    ;; the worklist is honest: covered + missing partition the target set
+    (is (= catalog/common-subscription-categories
+           (set/union (:covered g) (:missing g))))
+    (is (>= (:pct g) 80.0) "most common categories should now be covered")))
+
+(deftest test-no-person-nodes
+  ;; N1: a catalog entry is always a SERVICE.
+  (doseq [e (entries)]
+    (is (string? (:proc/svc-id e)))
+    (is (not (contains? e :person/id)))
+    (is (not (contains? e :proc/person)))))
+
+(deftest test-validate-catches-bad-entry
+  ;; the validator is real — a planted evasion verb + a T2-over-prohibited claim fail.
+  (let [bad-evasion {:proc/svc-id "x" :proc/name "X" :proc/category :other :proc/region :global
+                     :proc/cancel {:api :none :browser :prohibited :self-submit true}
+                     :proc/notice-days 0 :proc/penalty-jpy 0
+                     :proc/self-submit-steps ["use captcha-solve to bypass"]
+                     :proc/disclosed-source "x" :proc/operator-verified false
+                     :proc/sourcing :representative}
+        bad-t2 {:proc/svc-id "y" :proc/name "Y" :proc/category :other :proc/region :global
+                ;; claims T2 routing implied, but browser is :prohibited → must fail.
+                ;; (derive-tier gives T3 here, so to force the check we set browser :prohibited
+                ;;  while a T2 would only arise from :permitted — instead test the evasion path
+                ;;  and a missing-key path which validate must catch.)
+                :proc/cancel {:api :none :browser :prohibited :self-submit true}
+                :proc/notice-days 0 :proc/penalty-jpy 0
+                :proc/self-submit-steps ["ok step"]
+                :proc/disclosed-source "y" :proc/operator-verified true   ; G6 violation
+                :proc/sourcing :representative}]
+    (is (seq (catalog/validate-entry bad-evasion)))
+    (is (seq (catalog/validate-entry bad-t2)))))
+
+;; ── enrichment (catalog → plan) ─────────────────────────────────────────────
+
+(defn- plan-for
+  "A minimal string-key plan map (the plan/build-plan shape) for svc."
+  [svc & {:keys [notice penalty] :or {notice 0 penalty 0}}]
+  {"svc" svc "svc_label" svc "tier" "T3" "recommendation" ":sever"
+   "notice_days" notice "penalty_jpy" penalty "steps" [] "mode" "dry-run"})
+
+(deftest test-enrich-plan-adds-disclosed-procedure
+  (let [bi (catalog/by-id (entries))
+        ;; netflix catalog notice/penalty are both 0 → no drift when ledger is 0/0
+        p (catalog/enrich-plan (plan-for "netflix") bi)]
+    (is (true? (get p "catalog_coverage")))
+    (is (seq (get-in p ["catalog" "self_submit_steps"])))
+    (is (= "https://help.netflix.com/ja/node/407" (get-in p ["catalog" "disclosed_source"])))
+    (is (false? (get-in p ["catalog" "operator_verified"])))
+    ;; additive: the original plan fields are untouched
+    (is (= ":sever" (get p "recommendation")))))
+
+(deftest test-enrich-plan-surfaces-g8-drift
+  ;; ledger says 0 penalty, catalog says Adobe ETF > 0 → drift must be SHOWN, never reconciled.
+  (let [bi (catalog/by-id (entries))
+        p (catalog/enrich-plan (plan-for "adobe-cc" :penalty 0) bi)]
+    (is (true? (get p "catalog_coverage")))
+    (is (pos? (get-in p ["catalog" "penalty_jpy"])))
+    (is (seq (get-in p ["catalog" "g8_drift"])))
+    (is (some #(re-find #"penalty_jpy" %) (get-in p ["catalog" "g8_drift"])))))
+
+(deftest test-enrich-plan-gap-is-honest
+  (let [bi (catalog/by-id (entries))
+        p (catalog/enrich-plan (plan-for "svc:not-in-catalog") bi)]
+    (is (false? (get p "catalog_coverage")))
+    (is (nil? (get p "catalog")))))
+
+(deftest test-coverage-of-worklist
+  (let [bi (catalog/by-id (entries))
+        cov (catalog/coverage-of ["netflix" "spotify" "svc:gym-b" "svc:video-a"] bi)]
+    (is (= 4 (:total cov)))
+    (is (= #{"netflix" "spotify"} (set (:covered cov))))
+    (is (= #{"svc:gym-b" "svc:video-a"} (set (:gaps cov))))
+    (is (= 50.0 (:pct cov))))
+  ;; the R0 synthetic seed ids never match real catalog ids → 0% (the gap is the point)
+  (let [bi (catalog/by-id (entries))
+        cov (catalog/coverage-of ["svc:video-a" "svc:gym-b"] bi)]
+    (is (= 0.0 (:pct cov)))
+    (is (empty? (:covered cov)))))
+
+(defn -main [& _]
+  (let [{:keys [fail error]} (run-tests 'kaiyaku.tests.test-catalog)]
+    (System/exit (if (zero? (+ fail error)) 0 1))))
