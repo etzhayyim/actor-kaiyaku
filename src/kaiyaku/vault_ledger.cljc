@@ -168,3 +168,124 @@
   [c procedures]
   (let [id (:contract/cancel-proc-id c)]
     (when (contract/recorded? id) (get procedures id))))
+
+;; ── 課金と契約の突き合わせ（reconcile） ─────────────────────────────────────
+;;
+;; 明細（meisai）や領収書は「実際に引かれたもの」を、vault の契約は「契約したと
+;; 記録したもの」を持つ。片方だけでは答えられない問いが 3 つある:
+;;
+;;   契約に一致する課金がある → その課金が契約の金額・課金日の**証拠**になる
+;;   契約の無い課金           → 見覚えのない継続課金（＝忘れている契約）
+;;   課金の無い契約           → 既に解約済みか、別経路（App Store 等）で請求されている
+;;
+;; **推測で紐付けない。** 「ANTHROPIC」と「Claude Pro」は文字列として一致せず、
+;; 部分一致やトークン類似で寄せると別の契約に金額が入る。間違った金額は、
+;; 金額が無いことより悪い（無記録は未記録として表示されるが、間違った値は
+;; 正しい値と同じ顔をする）。照合は正規化後の**完全一致**だけで、根拠は
+;; `:contract/merchant-descriptor`（明細から書き写した表記）か item の title。
+
+(defn normalize-merchant
+  "照合用の正規化。大文字小文字・前後空白・連続空白だけを潰す。句読点や
+  トークン分割には触れない —— そこまでやると別の加盟店が一致し始める。"
+  [s]
+  (when (and s (not= s :contract/not-recorded) (not (str/blank? (str s))))
+    (-> (str s) str/trim str/upper-case (str/replace #"\s+" " "))))
+
+(defn ->charge
+  "meisai の handoff レコード（':…' 文字列キー）→ 正準 charge。
+  他の証拠源（領収書メール等）も同じ形に寄せてから渡す。"
+  [h]
+  (let [cur (get h ":handoff/currency")]
+    {:charge/merchant (get h ":handoff/merchant" (get h ":handoff/svc"))
+     :charge/amount-minor (or (get h ":handoff/amount-jpy") (get h ":handoff/typical-amount"))
+     ;; meisai は `:jpy` のような小文字 keyword、契約は ISO 4217 の大文字。
+     :charge/currency (some-> cur name str/upper-case)
+     :charge/months (vec (get h ":handoff/months" []))
+     :charge/occurrences (get h ":handoff/occurrences")
+     :charge/amount-stable? (get h ":handoff/amount-stable")
+     :charge/source (get h ":handoff/source")}))
+
+(defn- match-keys
+  "この契約が課金と一致しうる表記の集合。descriptor が無ければ title で照合する
+  （明細表記がそのままサービス名のこともあるため）が、descriptor があるならそれが
+  一次の根拠。"
+  [c]
+  (into #{} (keep normalize-merchant)
+        [(:contract/merchant-descriptor c) (:contract/title c)]))
+
+(defn- evidence
+  "一致した課金が契約について何を言っているか。**上書きはしない** —— 記録済みの値と
+  食い違ったら `:conflict` として報告する（値上げかもしれないし、照合が間違って
+  いるのかもしれない。どちらも人が見るべきことで、静かに直す話ではない）。"
+  [c charge]
+  (let [a (:contract/amount-minor c)
+        cur (:contract/currency c)
+        ca (:charge/amount-minor charge)
+        ccur (:charge/currency charge)]
+    (cond-> {}
+      ;; 契約に金額が無く課金にある = そのまま埋められる証拠
+      (and (not (contract/recorded? a)) ca)
+      (assoc :fills {:contract/amount-minor ca :contract/currency ccur})
+
+      (and (contract/recorded? a) ca (not= a ca))
+      (assoc :conflict {:field :contract/amount-minor :recorded a :charged ca})
+
+      (and (contract/recorded? cur) ccur (not= cur ccur))
+      (assoc :currency-conflict {:recorded cur :charged ccur})
+
+      ;; 解約済みと記録されているのに引かれ続けている。最優先で人が見る事実。
+      (= :cancelled (:contract/status c))
+      (assoc :charged-after-cancellation true)
+
+      (seq (:charge/months charge))
+      (assoc :last-charged-month (last (sort (:charge/months charge)))))))
+
+(defn reconcile
+  "契約群と課金群を突き合わせる。書き込みはせず、3 方向の所見を返す。
+
+  戻り値 `{:matched [...] :ambiguous [...] :unmatched-charges [...]
+           :unmatched-contracts [...]}`。
+
+  1 つの課金が 2 つ以上の契約に一致したら **どちらも選ばず** `:ambiguous` に置く
+  ——同じ加盟店表記を 2 契約に書いた時点で、機械が選べる根拠は無い。"
+  [{:keys [contracts charges]}]
+  (let [by-key (reduce (fn [m c]
+                         (reduce (fn [m k] (update m k (fnil conj []) c)) m (match-keys c)))
+                       {} contracts)
+        init {:matched [] :ambiguous [] :unmatched-charges []
+              :unmatched-contracts [] :seen #{}}
+        r (reduce
+           (fn [acc charge]
+             (let [k (normalize-merchant (:charge/merchant charge))
+                   hits (get by-key k)]
+               (cond
+                 (empty? hits)
+                 (update acc :unmatched-charges conj
+                         (assoc charge :charge/note :no-matching-contract))
+
+                 (> (count hits) 1)
+                 (update acc :ambiguous conj
+                         {:charge charge
+                          :candidates (mapv :contract/item-id hits)
+                          :note :same-descriptor-on-several-contracts})
+
+                 :else
+                 (let [c (first hits)]
+                   (-> acc
+                       (update :matched conj {:contract/item-id (:contract/item-id c)
+                                              :contract/title (:contract/title c)
+                                              :charge charge
+                                              :evidence (evidence c charge)})
+                       (update :seen conj (:contract/item-id c)))))))
+           init charges)]
+    (-> r
+        (assoc :unmatched-contracts
+               (into [] (comp (remove #(contains? (:seen r) (:contract/item-id %)))
+                              (map (fn [c]
+                                     {:contract/item-id (:contract/item-id c)
+                                      :contract/title (:contract/title c)
+                                      :note (if (contract/recorded? (:contract/merchant-descriptor c))
+                                              :descriptor-recorded-but-no-charge-seen
+                                              :no-merchant-descriptor-recorded)})))
+                     contracts))
+        (dissoc :seen))))

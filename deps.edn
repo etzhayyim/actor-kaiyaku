@@ -8,7 +8,7 @@
         ;; 復号済み item を受け取るための型だけをここから借りる。
         io.github.kotoba-lang/kagitaba
         {:git/url "https://github.com/kotoba-lang/kagitaba.git"
-         :git/sha "65209095c74ccae621c623cdd44f9567de68f05b"}
+         :git/sha "91a96218b48757ca988d8467824e766317f2ca11"}
         etzhayyim/tate {:git/url "https://github.com/etzhayyim/com-etzhayyim-tate"
                         :git/sha "658b9f67aaa65d7aad5ffda280ec8feaae7a8bc2"}
         io.github.com-junkawasaki/langgraph-clj
