@@ -357,6 +357,40 @@
   :proc/operator-verified false
   :proc/sourcing :representative}
 
+ ;; SuperGrok と X Premium は別契約で、別の請求経路を持つ。同じ「Grok が使える」でも
+ ;; 解約先が違うので 1 エントリにまとめない — 間違った経路で解約しても課金は止まらない。
+ {:proc/svc-id "supergrok"
+  :proc/name "SuperGrok (xAI)"
+  :proc/category :ai
+  :proc/region :global
+  :proc/cancel {:api :none :browser :prohibited :self-submit true}
+  :proc/notice-days 0
+  :proc/penalty-jpy 0
+  :proc/self-submit-steps ["請求経路を先に特定する（xAI 直課金 / Apple App Store / Google Play で解約先が変わる。領収書メールの送信元で判別）"
+                           "xAI 直課金: grok.com にログインし Settings → Subscription → Manage → Cancel subscription"
+                           "「expires on」表示に変わったことを確認（「renews on」のままなら解約されていない）"
+                           "App Store / Google Play 課金の場合は各ストアのサブスクリプション管理から解約する"]
+  :proc/disclosed-source "https://docs.x.ai/grok/faq"
+  :proc/operator-verified false
+  :proc/sourcing :representative}
+
+ {:proc/svc-id "x-premium"
+  :proc/name "X Premium（Grok 同梱）"
+  :proc/category :ai
+  :proc/region :global
+  :proc/cancel {:api :none :browser :prohibited :self-submit true}
+  ;; G8: 「自動更新の 24 時間以上前に解約」が開示ガイダンス。0 ではないので 1 日として
+  ;; 持つ — 更新当日に気付いても間に合わない、という事実を潰さない。
+  :proc/notice-days 1
+  :proc/penalty-jpy 0
+  :proc/self-submit-steps ["契約したプラットフォーム（web / iOS / Android）で解約する — 契約経路と解約経路は一致していなければならない"
+                           "Settings →「Premium」→「Manage subscription」→ 解約"
+                           "自動更新の 24 時間以上前に完了させる（開示ガイダンス）"
+                           "支払済み期間の返金は無い。チェックマークは期間末まで残る"]
+  :proc/disclosed-source "https://help.x.com/en/using-x/x-premium-faq"
+  :proc/operator-verified false
+  :proc/sourcing :representative}
+
  {:proc/svc-id "1password"
   :proc/name "1Password"
   :proc/category :security

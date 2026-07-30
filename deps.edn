@@ -3,6 +3,12 @@
  ;;   langchain-clj → langgraph-clj → browser-use-clj / computer-use-clj
  ;; All four are zero-third-party-dep .cljc (WASM premise, Datomic-API-first).
  :deps {cheshire/cheshire {:mvn/version "5.13.0"}
+        ;; 契約(継続課金)の正準 item shape。kaiyaku は vault を開けない —
+        ;; kagitaba は crypto/store に依存しない純データモデルなので、
+        ;; 復号済み item を受け取るための型だけをここから借りる。
+        io.github.kotoba-lang/kagitaba
+        {:git/url "https://github.com/kotoba-lang/kagitaba.git"
+         :git/sha "65209095c74ccae621c623cdd44f9567de68f05b"}
         etzhayyim/tate {:git/url "https://github.com/etzhayyim/com-etzhayyim-tate"
                         :git/sha "658b9f67aaa65d7aad5ffda280ec8feaae7a8bc2"}
         io.github.com-junkawasaki/langgraph-clj
