@@ -26,6 +26,21 @@
 
 (defn load-file* [path] (edn/read-string (slurp (str path))))
 
+(def catalog-resource "cancel-procedures.kotoba.edn")
+
+(defn load-catalog
+  "Read the shared catalog off the classpath, so a consumer that depends on this
+  repo as a git dep gets the same file the tests run against.
+
+  A consumer that cannot reach the catalog would otherwise vendor a copy, and a
+  vendored copy of a disclosed procedure is a copy that goes stale silently —
+  the failure mode is telling somebody to click a button that no longer exists."
+  []
+  (if-let [r (io/resource catalog-resource)]
+    (edn/read-string (slurp r))
+    (throw (ex-info "cancel-procedure catalog not on the classpath"
+                    {:resource catalog-resource}))))
+
 (defn by-id [entries] (into {} (map (juxt :proc/svc-id identity)) entries))
 
 (defn derive-tier

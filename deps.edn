@@ -1,4 +1,4 @@
-{:paths ["src" "test"]
+{:paths ["src" "test" "data"]
  ;; kaiyaku 解約 cljc port (ADR-2606112201) on the portable-Clojure agent stack:
  ;;   langchain-clj → langgraph-clj → browser-use-clj / computer-use-clj
  ;; All four are zero-third-party-dep .cljc (WASM premise, Datomic-API-first).

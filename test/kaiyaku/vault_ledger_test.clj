@@ -138,3 +138,9 @@
         "AI サブスクは 4 件（SuperGrok と X Premium は請求経路が別なので別 entry）")
     (is (= "T3" (catalog/derive-tier (get (catalog/by-id entries) "supergrok")))
         "browser :prohibited は T2 に上がらない（G3）")))
+
+(deftest catalog-is-reachable-from-the-classpath
+  (testing "git dep として使う consumer も同じカタログを読む（vendor copy を作らせない）"
+    (let [from-path (catalog/load-file* "data/cancel-procedures.kotoba.edn")
+          from-cp (catalog/load-catalog)]
+      (is (= from-path from-cp)))))
