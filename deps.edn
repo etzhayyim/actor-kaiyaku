@@ -13,12 +13,18 @@
                         :git/sha "658b9f67aaa65d7aad5ffda280ec8feaae7a8bc2"}
         io.github.com-junkawasaki/langgraph-clj
         {:git/tag "v0.2.0" :git/sha "133740f"}
+        ;; Root authority over langgraph's older transitive pin. This revision
+        ;; supplies the repository EDN persistence host used by deployments.
+        io.github.com-junkawasaki/langchain-clj
+        {:git/url "https://github.com/kotoba-lang/langchain.git"
+         :git/sha "7038bb80ce030cc5a279785512c0e92d09f323e0"}
         io.github.com-junkawasaki/browser-use-clj
         {:git/tag "v0.1.0" :git/sha "119cd2f"}
         io.github.com-junkawasaki/computer-use-clj
         {:git/tag "v0.1.0" :git/sha "75b777a"}}
  :aliases
- {:test {:extra-paths ["test"]
+ {:repository {:main-opts ["-m" "kaiyaku.repository-runtime"]}
+  :test {:extra-paths ["test"]
          :extra-deps {io.github.cognitect-labs/test-runner
                       {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
          :main-opts ["-m" "cognitect.test-runner"]
