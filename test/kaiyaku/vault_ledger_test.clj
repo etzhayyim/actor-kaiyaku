@@ -144,3 +144,100 @@
     (let [from-path (catalog/load-file* "data/cancel-procedures.kotoba.edn")
           from-cp (catalog/load-catalog)]
       (is (= from-path from-cp)))))
+
+;; ── 課金と契約の突き合わせ ──────────────────────────────────────────────────
+
+(defn- contract-of [title m]
+  (contract/summary (item-of title m) today))
+
+(defn- charge [merchant amount cur months]
+  (vl/->charge {":handoff/source" ":meisai" ":handoff/merchant" merchant
+                ":handoff/typical-amount" amount ":handoff/currency" cur
+                ":handoff/months" months ":handoff/occurrences" (count months)
+                ":handoff/amount-stable" true}))
+
+(deftest merchant-name-is-not-the-service-name
+  (testing "推測で寄せない — ANTHROPIC と Claude Pro は一致しない"
+    (let [r (vl/reconcile {:contracts [(contract-of "Claude Pro" {:plan "Pro"})]
+                           :charges [(charge "ANTHROPIC" 3000 :jpy ["2026-06" "2026-07"])]})]
+      (is (empty? (:matched r)))
+      (is (= :no-matching-contract (:charge/note (first (:unmatched-charges r)))))
+      (is (= :no-merchant-descriptor-recorded (:note (first (:unmatched-contracts r))))
+          "紐付かない理由が「descriptor を書いていない」と名指しされる")))
+  (testing "descriptor を書き写してあれば一致する"
+    (let [r (vl/reconcile {:contracts [(contract-of "Claude Pro"
+                                                    {:plan "Pro" :merchant-descriptor "ANTHROPIC"})]
+                           :charges [(charge "ANTHROPIC" 3000 :jpy ["2026-06" "2026-07"])]})]
+      (is (= 1 (count (:matched r))))
+      (is (empty? (:unmatched-charges r)))
+      (is (empty? (:unmatched-contracts r))))))
+
+(deftest matching-is-exact-after-normalizing-case-and-space
+  (let [r (vl/reconcile {:contracts [(contract-of "X" {:merchant-descriptor "supergrok  xai"})]
+                         :charges [(charge "SUPERGROK XAI" 4400 :jpy ["2026-07"])]})]
+    (is (= 1 (count (:matched r))) "大文字小文字と連続空白だけは吸収する"))
+  (testing "部分一致では紐付けない"
+    (let [r (vl/reconcile {:contracts [(contract-of "X" {:merchant-descriptor "ANTHROPIC"})]
+                           :charges [(charge "ANTHROPIC PBC TOKYO" 3000 :jpy ["2026-07"])]})]
+      (is (empty? (:matched r))
+          "別加盟店かもしれない — 間違った契約に金額を入れるより紐付けない"))))
+
+(deftest a-charge_matching_two_contracts_picks_neither
+  (let [r (vl/reconcile
+           {:contracts [(contract-of "Claude Pro" {:merchant-descriptor "ANTHROPIC"})
+                        (contract-of "Claude Team" {:merchant-descriptor "anthropic"})]
+            :charges [(charge "ANTHROPIC" 3000 :jpy ["2026-07"])]})]
+    (is (empty? (:matched r)))
+    (is (= 1 (count (:ambiguous r))))
+    (is (= 2 (count (:candidates (first (:ambiguous r))))))
+    (is (= :same-descriptor-on-several-contracts (:note (first (:ambiguous r)))))))
+
+(deftest a-matched-charge-is-evidence-for-a-missing-amount
+  (let [r (vl/reconcile {:contracts [(contract-of "Claude Pro"
+                                                  {:plan "Pro" :merchant-descriptor "ANTHROPIC"})]
+                         :charges [(charge "ANTHROPIC" 3000 :jpy ["2026-05" "2026-06" "2026-07"])]})
+        e (:evidence (first (:matched r)))]
+    (is (= {:contract/amount-minor 3000 :contract/currency "JPY"} (:fills e))
+        "契約に金額が無く課金にある = 埋められる証拠")
+    (is (= "2026-07" (:last-charged-month e)))
+    (is (nil? (:conflict e)))))
+
+(deftest a-disagreement-is-reported-not-applied
+  (let [r (vl/reconcile {:contracts [(contract-of "Claude Pro"
+                                                  {:amount-minor 3000 :currency "JPY"
+                                                   :merchant-descriptor "ANTHROPIC"})]
+                         :charges [(charge "ANTHROPIC" 3500 :jpy ["2026-07"])]})
+        e (:evidence (first (:matched r)))]
+    (is (nil? (:fills e)) "記録済みの金額を課金で上書きしない")
+    (is (= {:field :contract/amount-minor :recorded 3000 :charged 3500} (:conflict e))
+        "値上げかもしれないし照合ミスかもしれない — どちらも人が見る")))
+
+(deftest currency-disagreement-is-never-converted
+  (let [r (vl/reconcile {:contracts [(contract-of "ChatGPT Plus"
+                                                  {:amount-minor 2000 :currency "USD"
+                                                   :merchant-descriptor "OPENAI"})]
+                         :charges [(charge "OPENAI" 3000 :jpy ["2026-07"])]})
+        e (:evidence (first (:matched r)))]
+    (is (= {:recorded "USD" :charged "JPY"} (:currency-conflict e)))))
+
+(deftest a-cancelled-contract-still-being-charged-is-surfaced
+  (let [r (vl/reconcile {:contracts [(contract-of "解約したはず"
+                                                  {:status :cancelled :merchant-descriptor "GHOST"})]
+                         :charges [(charge "GHOST" 980 :jpy ["2026-06" "2026-07"])]})
+        e (:evidence (first (:matched r)))]
+    (is (true? (:charged-after-cancellation e))
+        "解約済みと記録した契約に課金が続いている")))
+
+(deftest a-contract-with-no-charge-is-its-own-finding
+  (let [r (vl/reconcile {:contracts [(contract-of "App Store 経由"
+                                                  {:merchant-descriptor "APPLE.COM/BILL"})]
+                         :charges [(charge "ANTHROPIC" 3000 :jpy ["2026-07"])]})]
+    (is (= 1 (count (:unmatched-contracts r))))
+    (is (= :descriptor-recorded-but-no-charge-seen (:note (first (:unmatched-contracts r))))
+        "書き写してあるのに課金が無い = 解約済みか別カードか、確かめる価値がある")))
+
+(deftest reconcile-writes-nothing
+  (let [c (contract-of "Claude Pro" {:merchant-descriptor "ANTHROPIC"})
+        before (pr-str c)]
+    (vl/reconcile {:contracts [c] :charges [(charge "ANTHROPIC" 3000 :jpy ["2026-07"])]})
+    (is (= before (pr-str c)) "所見を返すだけで、契約は書き換えない")))
