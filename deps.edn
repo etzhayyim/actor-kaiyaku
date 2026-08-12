@@ -30,7 +30,7 @@
          :main-opts ["-m" "cognitect.test-runner"]
          :exec-fn cognitect.test-runner.api/test}
   ;; Local checkouts for workspace development. Paths are relative to THIS
-  ;; repo's west path (orgs/etzhayyim/com-etzhayyim-kaiyaku), so `../../` is
+  ;; repo's west path (orgs/etzhayyim/actor-kaiyaku), so `../../` is
   ;; `orgs/`. They were `../../../../../` until 2026-07-30 — correct for the
   ;; pre-extraction location (etzhayyim/root/20-actors/kaiyaku/clj) and wrong
   ;; ever since, which `scripts/west-orphan-audit.cljs --blocking` reported as

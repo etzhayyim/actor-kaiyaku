@@ -1,5 +1,12 @@
 # kaiyaku 解約 — 縁切り (tie-severance) executor
 
+Canonical repository: `etzhayyim/actor-kaiyaku`. Kaiyaku is the governed
+service-tie severance organ of the Tamaki-centered Etzhayyim artificial
+organism. It prepares member-approved, own-account-only dry-run plans; Tamaki
+retains organism authority and no live cancellation bypasses member signature
+or Council gates. The former `com-etzhayyim-kaiyaku` name remains a
+compatibility redirect.
+
 Canonical actor data is EDN (`manifest.edn`, `kotoba.app.edn`, `data/`). Runtime and tests are
 Clojure/CLJC under `src/` and `test/`; JSON interoperability belongs only in `wire/`.
 Go/TinyGo, Python, and shell implementations are deprecated and pruned, not ported.
