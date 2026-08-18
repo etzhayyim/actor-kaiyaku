@@ -11,7 +11,7 @@
     - approved? / usable? / issuance-template behave as the leash requires"
   (:require [clojure.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
-            [cheshire.core :as json]
+            [json.compat :as json]
             [kaiyaku.methods.cap :as cap]))
 
 (defn- valid-bundle []

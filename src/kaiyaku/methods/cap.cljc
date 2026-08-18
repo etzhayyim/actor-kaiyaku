@@ -73,7 +73,7 @@
      [path]
      (let [f (io/file (str path))]
        (when (.exists f)
-         (let [parse (requiring-resolve 'cheshire.core/parse-string)
+         (let [parse (requiring-resolve 'json.compat/parse-string)
                bundle (parse (slurp f))
                missing (vec (remove #(contains? bundle %) required-keys))]
            (when (seq missing)
