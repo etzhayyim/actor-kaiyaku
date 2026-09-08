@@ -8,7 +8,7 @@
     - G8: notice/penalty are carried into the plan (cost-of-severance honesty)
     - G5/G6: every plan demands member-sig + dry-run + Council gate; execute raises
     - only :sever / :review-cascade ties are plannable (:keep refuses)"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.analyze :as analyze]
             [kaiyaku.methods.plan :as plan]))
@@ -56,7 +56,7 @@
         p (plan/build-plan (get nodes "svc:gym-b") (get ties "svc:gym-b"))]
     (is (and (= 30 (get p "notice_days")) (= 5000 (get p "penalty_jpy"))))
     ;; and no step plans around the obligation
-    (is (every? #(not (clojure.string/includes? (get % "verb") "penalty")) (get p "steps")))))
+    (is (every? #(not (kotoba.lang.text/includes? (get % "verb") "penalty")) (get p "steps")))))
 
 (deftest test-destructive-gates-and-dry-run
   (let [[nodes ties] (ctx)

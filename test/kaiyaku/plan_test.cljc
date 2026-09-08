@@ -1,7 +1,7 @@
 (ns kaiyaku.plan-test
   "Gate tests for kaiyaku.plan + kaiyaku.datoms (G3 / G5 / G6 / G8 / G2)."
   (:require [clojure.test :refer [deftest is testing]]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [kaiyaku.ledger :as ledger]
             [kaiyaku.analyze :as analyze]
             [kaiyaku.plan :as plan]

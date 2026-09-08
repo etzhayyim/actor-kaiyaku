@@ -13,7 +13,7 @@
   receipts carry executed=false ALWAYS (G6), the audit can independently VERIFY
   that no live cancellation was ever recorded — `executed-count` is a standing 0
   check, not a claim."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.kotoba :as k]))
 
 (defn entities-from-datoms

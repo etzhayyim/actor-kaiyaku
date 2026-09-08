@@ -12,7 +12,7 @@
     G3/no-server-key — a credential is never stored in a receipt; never server-signed
     G8  — cost-of-severance is carried (catalog notice/penalty are numbers)
     N1  — a tie target is always a SERVICE, never a person (no :person/* anywhere)"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.plan :as plan]
             [kaiyaku.methods.driver :as driver]
@@ -86,10 +86,10 @@
 (deftest n1-no-person-anywhere
   ;; catalog entries carry no person attribute
   (doseq [e (entries)]
-    (is (not-any? #(clojure.string/includes? (str %) "person") (keys e))))
+    (is (not-any? #(kotoba.lang.text/includes? (str %) "person") (keys e))))
   ;; the seed ledger declares no :person/* node kind
   (let [seed (slurp (io/file actor-dir "data" "seed-en-ledger.kotoba.edn"))]
-    (is (not (clojure.string/includes? seed ":person/")))))
+    (is (not (kotoba.lang.text/includes? seed ":person/")))))
 
 (defn -main [& _]
   (let [{:keys [fail error]} (run-tests 'kaiyaku.tests.test-charter-invariants)]

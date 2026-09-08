@@ -9,7 +9,7 @@
     - Ed25519 sign→verify roundtrips (and a tampered message fails) — JDK, clj-native
     - an unsigned build is honestly marked UNSIGNED; a signed build is member-signed
     - graph-cid is a deterministic CIDv1 (bafyrei… dag-cbor sha2-256)"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
             [kaiyaku.tools.issue-capability :as t]
             [kaiyaku.methods.cap :as cap]))
 
@@ -26,7 +26,7 @@
 
 (deftest test-did-key-canonical-and-deterministic
   (let [d (t/did-key-from-pubkey fixed-pub)]
-    (is (clojure.string/starts-with? d "did:key:z6Mk"))
+    (is (kotoba.lang.text/starts-with? d "did:key:z6Mk"))
     (is (= d (t/did-key-from-pubkey fixed-pub)))))   ; deterministic
 
 (deftest test-b58-basic
@@ -75,12 +75,12 @@
                            :graph-cid "graph:kaiyaku" :exp-iso "2026-07-21T00:00:00Z"
                            :exp-epoch 9999999999 :nonce "n" :approved ["netflix"]})
         [_ signed] (issue ["netflix"])]
-    (is (clojure.string/includes? (get-in unsigned [:sidecar "_status"]) "UNSIGNED"))
-    (is (clojure.string/includes? (get-in signed [:sidecar "_status"]) "member-signed"))))
+    (is (kotoba.lang.text/includes? (get-in unsigned [:sidecar "_status"]) "UNSIGNED"))
+    (is (kotoba.lang.text/includes? (get-in signed [:sidecar "_status"]) "member-signed"))))
 
 (deftest test-graph-cid-deterministic-cidv1
   (let [c (t/graph-cid "kaiyaku")]
-    (is (clojure.string/starts-with? c "bafyrei"))   ; CIDv1 dag-cbor sha2-256 base32
+    (is (kotoba.lang.text/starts-with? c "bafyrei"))   ; CIDv1 dag-cbor sha2-256 base32
     (is (= c (t/graph-cid "kaiyaku")))))
 
 (defn -main [& _]

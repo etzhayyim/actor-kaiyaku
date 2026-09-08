@@ -2,7 +2,7 @@
   "kaiyaku 解約 — Datom-emit tests (ADR-2606112201), 1:1 port of the deferred datom tests in
   tests/test_analyze.py (test_datoms_ground_and_transient + test_determinism)."
   (:require [clojure.test :refer [deftest is]]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]
             [kaiyaku.methods.datom-emit :as datom-emit]))
 

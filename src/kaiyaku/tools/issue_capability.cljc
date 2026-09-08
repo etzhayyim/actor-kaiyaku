@@ -31,7 +31,7 @@
     - The member's seed is THEIR secret — never commit it, never hand it to
       kaiyaku. kaiyaku only ever sees `cacao_b64` (opaque) + the sidecar metadata.
       Revoke by letting `exp` pass (stop re-issuing)."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.cap :as cap]
             [multiformats.core :as mf]
             #?(:clj [clojure.java.io :as io]))

@@ -25,7 +25,7 @@
     N1 — every entry is a SERVICE (svc-id), never a person.
 
   Deterministic; pure fns; file I/O only at the #?(:clj …) load edge. Portable .cljc."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [clojure.set :as set]
             #?(:clj [clojure.edn :as edn])
             #?(:clj [clojure.java.io :as io])))
@@ -84,7 +84,7 @@
 
 ;; ── validate (the honesty gates, in code) ───────────────────────────────────
 
-(defn- step-text [steps] (str/lower-case (str/join " " (map str steps))))
+(defn- step-text [steps] (str/lower (str/join " " (map str steps))))
 
 (defn validate-entry
   "Returns a vector of error strings for one entry (empty = ok)."

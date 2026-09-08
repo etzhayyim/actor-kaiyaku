@@ -38,7 +38,7 @@
   `:…` keyword strings stay strings; pure fns; file I/O only at the #?(:clj …)
   edge. Portable .cljc."
   (:refer-clojure :exclude [load])
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             #?(:clj [clojure.java.io :as io])))
 
 (def capability

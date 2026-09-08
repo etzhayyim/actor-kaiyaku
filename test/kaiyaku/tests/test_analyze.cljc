@@ -18,7 +18,7 @@
   is a separate unit, mirroring the inochi/rasen precedent). All seven PURE analyze
   assertions are ported 1:1."
   (:require [clojure.test :refer [deftest is run-tests]]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [clojure.java.io :as io]
             [kaiyaku.methods.analyze :as analyze]))
 

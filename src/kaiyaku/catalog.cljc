@@ -12,7 +12,7 @@
     G6 — every entry :operator-verified false (:representative; verify before live use).
     N1 — every entry is a SERVICE, never a person."
   (:require [clojure.edn :as edn]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [clojure.java.io :as io]))
 
 (def evasion-tokens
@@ -72,7 +72,7 @@
       (when-not (contains? entry k) (conj! errs (str sid ": missing " k))))
     (when (and (= "T2" (derive-tier entry)) (not= browser :permitted))
       (conj! errs (str sid ": G3 — T2 over a non-:permitted browser stance " (pr-str browser))))
-    (let [txt (str/lower-case (str/join " " (map str (:proc/self-submit-steps entry))))]
+    (let [txt (str/lower (str/join " " (map str (:proc/self-submit-steps entry))))]
       (doseq [tok evasion-tokens]
         (when (str/includes? txt tok)
           (conj! errs (str sid ": G3 — evasion token '" tok "'")))))

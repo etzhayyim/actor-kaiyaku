@@ -15,7 +15,7 @@
   In the clj/ lane the member-sig ALSO surfaces as the langgraph interrupt before
   :approve; the capability is the cryptographic leash that additionally gates the
   (post-R1) live path. Pure fns; no signature primitive here (present-only)."
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def capability "service:cancel")
 (def graph "graph:kaiyaku")
