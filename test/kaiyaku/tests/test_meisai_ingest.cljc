@@ -6,7 +6,7 @@
   recurring card charge lands as a `:recurring-charge` tie kaiyaku decides on (no new decision
   logic). N1: the produced node is always a SERVICE (`:card-merchant`), never a person."
   (:require [clojure.test :refer [deftest is run-tests]]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [kaiyaku.methods.meisai-ingest :as mi]
             [kaiyaku.methods.analyze :as analyze]))
 

@@ -15,7 +15,7 @@
   pure fns; file I/O behind #?(:clj …). Portable .cljc.
 
   NOTE: the Python __main__ CLI demo (main/argv handling) is ported as -main behind #?(:clj)."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]
             [tate.methods.terms-scan :as terms-scan]
             #?(:clj [clojure.java.io :as io])))

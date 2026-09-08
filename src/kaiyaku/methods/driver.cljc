@@ -39,7 +39,7 @@
 
   Deterministic: `:now-epoch` is supplied by the caller (no wall clock here).
   Pure fns; no network I/O anywhere in this namespace. Portable .cljc."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [clojure.set :as set]
             [kaiyaku.methods.cap :as cap]))
 

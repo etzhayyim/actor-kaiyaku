@@ -17,7 +17,7 @@
 
   NODE ORDERING: the Python emitter walks nodes via `for nid in sorted(nodes)` (lexical
   sort), so insertion order is irrelevant — emit sorts node ids itself."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]
             #?(:clj [clojure.java.io :as io])))
 

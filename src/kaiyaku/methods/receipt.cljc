@@ -27,7 +27,7 @@
 
   Deterministic: caller supplies tx-id + as-of (no wall clock). Pure datom
   builders; file I/O only at the #?(:clj …) persist edge. Portable .cljc."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.kotoba :as k]
             [kaiyaku.methods.catalog :as catalog]))
 
@@ -79,7 +79,7 @@
   an unambiguous credential token OR a long base64-ish opaque blob (a signature /
   CACAO bytes), while letting benign short text through."
   [v]
-  (let [s (str/lower-case (str v))]
+  (let [s (str/lower (str v))]
     (when (or (some #(str/includes? s %) secret-tokens)
               (re-find #"[A-Za-z0-9+/]{40,}={0,2}" (str v)))   ; long opaque base64 (sig/CACAO)
       (throw (ex-info (str "G3/no-server-key: a receipt value looks credential-shaped: " (pr-str v))

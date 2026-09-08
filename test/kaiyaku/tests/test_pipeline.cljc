@@ -7,7 +7,7 @@
     - 'netflix'           (cancel api :none / browser :prohibited) → T3 → member-submits, no op
     - 'generic-saas-api'  (cancel api :available)                  → T1 → karakuri ServiceOp
   both real catalog ids (so enrichment fires), both member-approved in the capability."
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.pipeline :as pipeline]
             [kaiyaku.methods.catalog :as catalog]
@@ -87,7 +87,7 @@
       (let [r (pipeline/run+persist! {:nodes nodes :edges edges :catalog (catalog-by-id)
                                       :bundle bundle :now-epoch 1000}
                                      p {:tx-id "t1" :as-of "T0"})]
-        (is (clojure.string/starts-with? (:receipt-cid r) "b"))
+        (is (kotoba.lang.text/starts-with? (:receipt-cid r) "b"))
         (is (= 1 (count (k/read-log p))))
         (is (:ok (k/verify-chain p))))
       (finally (io/delete-file p true)))))
@@ -107,20 +107,20 @@
 (deftest test-member-report-honest
   (let [md (pipeline/member-report (run))]
     ;; dry-run honesty up front
-    (is (clojure.string/includes? md "dry-run"))
-    (is (clojure.string/includes? md "まだ何も実行されていません"))
+    (is (kotoba.lang.text/includes? md "dry-run"))
+    (is (kotoba.lang.text/includes? md "まだ何も実行されていません"))
     ;; both services appear with their disclosed procedure steps
-    (is (clojure.string/includes? md "netflix"))
-    (is (clojure.string/includes? md "generic-saas-api"))
-    (is (clojure.string/includes? md "手順:"))
+    (is (kotoba.lang.text/includes? md "netflix"))
+    (is (kotoba.lang.text/includes? md "generic-saas-api"))
+    (is (kotoba.lang.text/includes? md "手順:"))
     ;; never claims execution
-    (is (clojure.string/includes? md "executed: false"))
-    (is (not (clojure.string/includes? md "executed: true")))))
+    (is (kotoba.lang.text/includes? md "executed: false"))
+    (is (not (kotoba.lang.text/includes? md "executed: true")))))
 
 (deftest test-member-report-flags-operator-verification
   ;; catalog entries are operator-verified=false → the ⚠ flag must appear
   (let [md (pipeline/member-report (run))]
-    (is (clojure.string/includes? md "operator 検証が必要"))))
+    (is (kotoba.lang.text/includes? md "operator 検証が必要"))))
 
 (deftest test-member-report-shows-refusal-reason
   ;; with a capability approving only netflix, the T1 tie is refused → its reason shows
@@ -128,8 +128,8 @@
         r (pipeline/run {:nodes nodes :edges edges :catalog (catalog-by-id)
                          :bundle b :now-epoch 1000 :as-of "T0"})
         md (pipeline/member-report r)]
-    (is (clojure.string/includes? md "理由:"))
-    (is (clojure.string/includes? md "allowlist"))))
+    (is (kotoba.lang.text/includes? md "理由:"))
+    (is (kotoba.lang.text/includes? md "allowlist"))))
 
 (deftest test-run-seed-all-refused-honestly
   ;; the committed synthetic seed, run with NO capability → every severable tie is refused.
@@ -140,7 +140,7 @@
     (is (empty? (:serviceops r)))                ; nothing authorized → no karakuri op
     ;; the report is honest about it
     (let [md (pipeline/member-report r)]
-      (is (clojure.string/includes? md "認可(dry-run) 0件")))))
+      (is (kotoba.lang.text/includes? md "認可(dry-run) 0件")))))
 
 (deftest test-run-seed-with-capability-authorizes
   ;; provide a capability approving a seed svc that is severable → it authorizes.
@@ -179,7 +179,7 @@
     (is (= "rehome-dependency" (get (first (get hub-plan "steps")) "verb")))
     ;; even with the hub approved, dispatch REFUSES it (rehome first; cascade > capability)
     (is (false? (get hub-desc "authorized")))
-    (is (clojure.string/includes? (get hub-desc "why") "re-homed BEFORE severance"))
+    (is (kotoba.lang.text/includes? (get hub-desc "why") "re-homed BEFORE severance"))
     ;; → no karakuri op for a cascade-refused tie
     (is (empty? (:serviceops r)))))
 
@@ -203,7 +203,7 @@
   (let [r (run)
         txt (pipeline/summary-edn r)
         ;; strip the comment line, read the form
-        parsed (clojure.edn/read-string (clojure.string/replace txt #";;[^\n]*\n" ""))]
+        parsed (clojure.edn/read-string (kotoba.lang.text/replace txt #";;[^\n]*\n" ""))]
     (is (= (:total parsed) (:total (pipeline/summary r))))
     (is (true? (:dry-run parsed)))))
 

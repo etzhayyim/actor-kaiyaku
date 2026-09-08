@@ -9,7 +9,7 @@
       gate that stops a bad capability from ever reaching usable?
     - an absent bundle file → nil (fail-open to dry-run-only, never a crash)
     - approved? / usable? / issuance-template behave as the leash requires"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [json.compat :as json]
             [kaiyaku.methods.cap :as cap]))
@@ -70,7 +70,7 @@
     (is (= "did:key:zABC" (get t "iss")))                  ; the member signs (the on-record principal)
     (is (= "did:web:etzhayyim.com" (get t "aud")))         ; the node is the audience
     (is (= ["netflix"] (get t "approved")))
-    (is (some #(clojure.string/includes? % cap/capability) (get t "resources")))))
+    (is (some #(kotoba.lang.text/includes? % cap/capability) (get t "resources")))))
 
 (defn -main [& _]
   (let [{:keys [fail error]} (run-tests 'kaiyaku.tests.test-cap)]

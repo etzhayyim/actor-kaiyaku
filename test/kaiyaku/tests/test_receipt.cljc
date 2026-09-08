@@ -9,7 +9,7 @@
     - persistence: catalog + receipts append to the commit-DAG, chain, verify-chain :ok"
   (:require [clojure.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [kaiyaku.methods.receipt :as receipt]
             [kaiyaku.methods.catalog :as catalog]
             [kaiyaku.methods.kotoba :as k]))
@@ -63,7 +63,7 @@
                                          "status" "cacao_b64:AAAA-leaked"}] "T0")))
   ;; the clean descriptors emit no credential-shaped value
   (let [ds (receipt/receipt-datoms descriptors "T0")
-        joined (str/lower-case (pr-str ds))]
+        joined (str/lower (pr-str ds))]
     (is (not (str/includes? joined "cacao")))
     (is (not (str/includes? joined "signature")))))
 

@@ -6,7 +6,7 @@
   the two actors, no shared code beyond the EDN wire format."
   (:require [clojure.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [kaiyaku.methods.handoff-ingest :as handoff]
             [tate.methods.terms-scan :as terms-scan]))
 

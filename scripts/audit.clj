@@ -1,4 +1,4 @@
-(require '[clojure.edn :as edn] '[clojure.java.io :as io] '[clojure.string :as str])
+(require '[clojure.edn :as edn] '[clojure.java.io :as io] '[kotoba.lang.text :as str])
 (def root (.getCanonicalFile (io/file ".")))
 (def files (file-seq root))
 (def rel #(.toString (.relativize (.toPath root) (.toPath %))))

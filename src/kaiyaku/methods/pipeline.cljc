@@ -20,7 +20,7 @@
   driver authorizes; a post-R1 component executes (G6). Deterministic: caller
   supplies :now-epoch + :as-of (no wall clock). Pure except the receipt persist
   edge. Portable .cljc."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             #?(:clj [clojure.java.io :as io])
             [kaiyaku.methods.analyze :as analyze]
             [kaiyaku.methods.plan :as plan]

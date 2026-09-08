@@ -20,7 +20,7 @@
 
   Reuses kaiyaku.methods.analyze/read-edn (kaiyaku's own EDN reader — keys stay ':…' STRINGS).
   Pure fns; file I/O behind #?(:clj …). Portable .cljc, repo clj/bb rule."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]
             #?(:clj [clojure.java.io :as io])))
 
@@ -32,7 +32,7 @@
   "Merchant string → readable ascii id fragment ('AMAZON.CO.JP' → 'amazon-co-jp'); blank if the
   name is all non-ascii (then the hash suffix carries identity)."
   [s]
-  (-> (str s) str/lower-case (str/replace #"[^a-z0-9]+" "-") (str/replace #"(^-+|-+$)" "")))
+  (-> (str s) str/lower (str/replace #"[^a-z0-9]+" "-") (str/replace #"(^-+|-+$)" "")))
 
 (defn svc-id
   "Deterministic, collision-safe service id for a meisai merchant (stable across re-ingest →

@@ -31,7 +31,7 @@
   それを台帳に混ぜると「いくら払っているか」が観測日に依存し始める。JPY 以外は
   `:en/amount-minor` / `:en/currency` を実額のまま持ち、`:non-jpy-amount` として
   gap に記録する（表示はできる、JPY 前提の burden 計算だけができない）。"
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kagitaba.contract :as contract]))
 
 (def analyze-required
@@ -40,7 +40,7 @@
   [:en/monthly-cost-jpy :en/usage-score :en/last-used-days])
 
 (defn- slug [s]
-  (-> (str s) str/lower-case (str/replace #"[^a-z0-9]+" "-") (str/replace #"(^-|-$)" "")))
+  (-> (str s) str/lower (str/replace #"[^a-z0-9]+" "-") (str/replace #"(^-|-$)" "")))
 
 (defn svc-id
   "縁-ledger 上の service id。kaiyaku catalog の svc-id が記録されていればそれを使い
@@ -189,7 +189,7 @@
   トークン分割には触れない —— そこまでやると別の加盟店が一致し始める。"
   [s]
   (when (and s (not= s :contract/not-recorded) (not (str/blank? (str s))))
-    (-> (str s) str/trim str/upper-case (str/replace #"\s+" " "))))
+    (-> (str s) str/trim str/upper (str/replace #"\s+" " "))))
 
 (defn ->charge
   "meisai の handoff レコード（':…' 文字列キー）→ 正準 charge。
@@ -199,7 +199,7 @@
     {:charge/merchant (get h ":handoff/merchant" (get h ":handoff/svc"))
      :charge/amount-minor (or (get h ":handoff/amount-jpy") (get h ":handoff/typical-amount"))
      ;; meisai は `:jpy` のような小文字 keyword、契約は ISO 4217 の大文字。
-     :charge/currency (some-> cur name str/upper-case)
+     :charge/currency (some-> cur name str/upper)
      :charge/months (vec (get h ":handoff/months" []))
      :charge/occurrences (get h ":handoff/occurrences")
      :charge/amount-stable? (get h ":handoff/amount-stable")

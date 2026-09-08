@@ -18,7 +18,7 @@
        no evasion tool EXISTS to call (evasion verbs are unrepresentable).
 
   G4/ADR-2605215000: murakumo-model refuses any non-loopback gateway."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [browseruse.agent :as bagent]
             [computeruse.agent :as cagent]
             [langchain.model :as model]))

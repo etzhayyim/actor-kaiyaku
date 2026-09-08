@@ -15,7 +15,7 @@
   Divergence from the Python emitter: nested :svc/cancel keys render as
   :svc/cancel.api (valid keyword) instead of Python's concatenated
   \":svc/cancel:api\" (not a valid EDN keyword)."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.plan :as plan]))
 
 (def node-attrs [:svc/label :svc/kind :svc/category :svc/sourcing

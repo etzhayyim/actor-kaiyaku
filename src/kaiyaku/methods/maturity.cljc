@@ -12,7 +12,7 @@
   Deterministic: every count map is rendered in sorted-key order (frequencies'
   map order is otherwise unstable), so the output is byte-stable for the freshness
   comparison. File I/O only at the #?(:clj …) edge."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.catalog :as catalog]
             #?(:clj [clojure.edn :as edn])
             #?(:clj [clojure.java.io :as io])))

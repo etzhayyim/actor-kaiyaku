@@ -23,7 +23,7 @@
   appends to a local file. G1: the ledger records the member's OWN service ties
   (synthetic at R0), never a person/relationship (N1 — a tie target is always a
   SERVICE); severance is dry-run + member-signed (execute() is Council-gated)."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             #?(:clj [clojure.java.io :as io])))
 
 (defn add [entity attr value] [":db/add" entity attr value])

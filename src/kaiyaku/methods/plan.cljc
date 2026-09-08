@@ -25,7 +25,7 @@
 
   House style: Python ':…' keyword strings stay strings; pure fns; file I/O only at edges.
   Requires the existing kaiyaku analyze ns (analyze/load-file* + analyze/analyze)."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]))
 
 (def evasion-verbs
