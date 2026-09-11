@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — real-service cancellation-procedure CATALOG loader + validator.
 (ns kaiyaku.methods.catalog
   "catalog.cljc — kaiyaku 解約 R1 cancellation-procedure catalog (ADR-2606112201 R1).

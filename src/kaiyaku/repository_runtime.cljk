@@ -37,5 +37,5 @@
 (defn -main [& [command thread-id]]
   (case command
     "heartbeat" (prn (heartbeat! (or thread-id "deployment-readiness")))
-    (throw (ex-info "usage: clojure -M:repository heartbeat [thread-id]"
+    (throw (ex-info "usage: kbb -M:repository heartbeat [thread-id]"
                     {:type :kaiyaku.repository/invalid-command}))))

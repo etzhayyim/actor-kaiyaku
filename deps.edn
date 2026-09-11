@@ -22,7 +22,7 @@
         ;; libraries to it, and both land on the classpath at their own shas.
         ;;
         ;; They had to move as a set. Renaming langchain alone was measured
-        ;; with `clojure -Stree -M:test` and made things worse: the root pin
+        ;; with `kbb -Stree -M:test` and made things worse: the root pin
         ;; became io.github.kotoba-lang/langchain 7038bb8, and langgraph-clj
         ;; v0.2.0 -- which names the OLD langchain coordinate -- was no longer
         ;; overridden by it, so langchain.* loaded twice, from 7038bb8 and from

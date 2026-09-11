@@ -44,4 +44,4 @@ NO live cancellation I/O in this codebase (`plan/execute` raises). Dry-run throu
 - clj/ langgraph lane: R1 functionally equivalent — `kaiyaku.cap` + `kaiyaku.driver` +
   `kaiyaku.catalog` clj-native, wired into agent.cljc as the :dispatch node (:approve →
   :dispatch → :rehearse, capability-gated authorization + catalog-enriched descriptor,
-  executed=false; `clojure -X:test`). Both lanes carry R1; catalog EDN is shared.
+  executed=false; `kbb -X:test`). Both lanes carry R1; catalog EDN is shared.

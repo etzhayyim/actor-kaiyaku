@@ -22,8 +22,8 @@ the at-a-glance state see the generated [`MATURITY.md`](MATURITY.md).
 
 ```bash
 # from repo root
-bb 20-actors/kaiyaku/methods/pipeline.cljc      # → out/pipeline-member-report.md + out/pipeline-summary.edn
-bb 20-actors/kaiyaku/methods/maturity.cljc      # → MATURITY.md (regenerate after manifest/catalog edits)
+kbb 20-actors/kaiyaku/methods/pipeline.cljk      # → out/pipeline-member-report.md + out/pipeline-summary.edn
+kbb 20-actors/kaiyaku/methods/maturity.cljk      # → MATURITY.md (regenerate after manifest/catalog edits)
 bash 20-actors/kaiyaku/run_tests.sh             # full bb suite
 ```
 

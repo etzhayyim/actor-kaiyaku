@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — kaiyaku→karakuri ServiceOp handoff (kaiyaku decides, karakuri executes).
 (ns kaiyaku.methods.karakuri-bridge
   "karakuri_bridge.cljc — kaiyaku 解約 R1 cross-actor handoff to karakuri 絡繰

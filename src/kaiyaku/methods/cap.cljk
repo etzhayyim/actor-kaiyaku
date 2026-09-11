@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — severance CAPABILITY (the revocable leash for live cancel).
 (ns kaiyaku.methods.cap
   "cap.cljc — kaiyaku 解約 R1 severance capability (ADR-2606112201 R1, on the

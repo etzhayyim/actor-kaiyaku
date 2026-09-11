@@ -148,7 +148,7 @@ python3 methods/handoff_ingest.py    # tate handoff → out/handoff-worklist.md
 python3 tests/test_analyze.py && python3 tests/test_plan.py \
   && python3 tests/test_handoff.py   # 22 green
 
-cd clj && clojure -X:test             # clj lane: 32 tests / 189 assertions green (R1 cap/driver/catalog wired into :dispatch)
+cd clj && kbb -X:test             # clj lane: 32 tests / 189 assertions green (R1 cap/driver/catalog wired into :dispatch)
 ```
 
 ## Do not

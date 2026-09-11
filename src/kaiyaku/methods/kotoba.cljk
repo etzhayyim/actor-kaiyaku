@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — 縁-ledger DATOM-LOG writer (content-addressed commit-DAG).
 (ns kaiyaku.methods.kotoba
   "kotoba.cljc — kaiyaku 解約 append-only ENKIRI (縁-ledger) LEDGER writer
