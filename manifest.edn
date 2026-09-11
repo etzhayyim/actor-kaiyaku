@@ -52,20 +52,20 @@
  :actor/r1 ; R1 execution-leg (ADR-2606112201 R1): capability-gated, dry-run, NO live I/O — the
            ; driver authorizes, a post-R1 component executes (G6). Every file here exists on disk
            ; (manifest↔methods parity is test-enforced).
- {:capability {:method "src/kaiyaku/methods/cap.cljc" :tool "src/kaiyaku/tools/issue_capability.cljc"
+ {:capability {:method "src/kaiyaku/methods/cap.cljk" :tool "src/kaiyaku/tools/issue_capability.cljk"
                :model :revocable-cacao-leash
                :note "member-presented CACAO; `approved` svc-id allowlist = G5 in the leash; present-only — kaiyaku never signs (no-server-key, ADR-2605231525)"}
-  :driver     {:method "src/kaiyaku/methods/driver.cljc"
+  :driver     {:method "src/kaiyaku/methods/driver.cljk"
                :note "authorize-never-execute membrane; cascade ordering + exactly-once; executed=false ALWAYS (G6); surfaces disclosed procedure + g8_drift to the member"}
-  :catalog    {:method "src/kaiyaku/methods/catalog.cljc" :data "data/cancel-procedures.kotoba.edn"
+  :catalog    {:method "src/kaiyaku/methods/catalog.cljk" :data "data/cancel-procedures.kotoba.edn"
                :note "real-service 解約 procedures; operator-verified=false (:representative, G6); derive-tier ≡ plan/select-tier (no data↔logic drift)"}
-  :receipt    {:method "src/kaiyaku/methods/receipt.cljc"
+  :receipt    {:method "src/kaiyaku/methods/receipt.cljk"
                :note "catalog + authorization-receipt datoms → kotoba commit-DAG (G9 audit, verify-chain); a credential is NEVER stored (refused at emit)"}
-  :handoff    {:method "src/kaiyaku/methods/karakuri_bridge.cljc"
+  :handoff    {:method "src/kaiyaku/methods/karakuri_bridge.cljk"
                :note "plan → karakuri com.etzhayyim.karakuri.serviceOp; validated vs karakuri's OWN lexicon (tier-scheme + enum parity, no-drift)"}
-  :pipeline   {:method "src/kaiyaku/methods/pipeline.cljc"
+  :pipeline   {:method "src/kaiyaku/methods/pipeline.cljk"
                :note "analyze→plan→enrich→dispatch→serviceop→receipt end-to-end, dry-run (integration-tested)"}
-  :audit      {:method "src/kaiyaku/methods/audit.cljc"
+  :audit      {:method "src/kaiyaku/methods/audit.cljk"
                :note "G9 READ side: fold the receipt log back into entity views + query; standing G6 verification (no receipt ever records a live execution: executed=0, server-signed=0)"}}
 
  :actor/cells ; langgraph→WASM; .solve() raises at R0 (scaffold follow-up)

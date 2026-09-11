@@ -1,1 +1,1 @@
-{:tasks {test (shell "clojure -M -m kaiyaku.test-runner") audit (load-file "scripts/audit.clj")}}
+{:tasks {test (shell "clojure -M -m kaiyaku.test-runner") audit (load-file "scripts/audit.cljk")}}
