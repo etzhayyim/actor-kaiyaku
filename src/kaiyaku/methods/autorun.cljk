@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — autonomous heartbeat: load the 縁-ledger → append GROUND datoms.
 (ns kaiyaku.methods.autorun
   "autorun.cljc — kaiyaku 解約 deterministic heartbeat (ADR-2606112201, tate/hinagata pattern).

@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — the MEMBER-side tool that mints a revocable severance capability.
 (ns kaiyaku.tools.issue-capability
   "issue_capability.cljc — the MEMBER's OWN signing-runtime tool that mints a

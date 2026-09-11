@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — R1 severance DRIVER: capability-gated dispatch (authorize, never execute).
 (ns kaiyaku.methods.driver
   "driver.cljc — kaiyaku 解約 R1 severance driver (ADR-2606112201 R1). The

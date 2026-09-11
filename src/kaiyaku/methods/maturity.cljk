@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — generated R1 MATURITY scorecard (do not hand-edit MATURITY.md).
 (ns kaiyaku.methods.maturity
   "maturity.cljc — kaiyaku 解約 R1 MATURITY scorecard generator (ADR-2606112201 R1).
@@ -67,7 +67,7 @@
      "- clj/ langgraph lane: R1 functionally equivalent — `kaiyaku.cap` + `kaiyaku.driver` +\n"
      "  `kaiyaku.catalog` clj-native, wired into agent.cljc as the :dispatch node (:approve →\n"
      "  :dispatch → :rehearse, capability-gated authorization + catalog-enriched descriptor,\n"
-     "  executed=false; `clojure -X:test`). Both lanes carry R1; catalog EDN is shared.\n")))
+     "  executed=false; `kbb -X:test`). Both lanes carry R1; catalog EDN is shared.\n")))
 
 #?(:clj
    (defn generate

@@ -1,4 +1,4 @@
-#!/usr/bin/env bb
+#!/usr/bin/env kbb
 ;; kaiyaku 解約 — the full R1 dry-run pipeline, composed end-to-end.
 (ns kaiyaku.methods.pipeline
   "pipeline.cljc — kaiyaku 解約 R1 end-to-end composition (ADR-2606112201 R1).

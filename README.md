@@ -11,7 +11,7 @@ Canonical actor data is EDN (`manifest.edn`, `kotoba.app.edn`, `data/`). Runtime
 Clojure/CLJC under `src/` and `test/`; JSON interoperability belongs only in `wire/`.
 Go/TinyGo, Python, and shell implementations are deprecated and pruned, not ported.
 
-Run `clojure -M -m kaiyaku.test-runner` and `bb scripts/audit.cljk`.
+Run `kbb -M -m kaiyaku.test-runner` and `kbb scripts/audit.cljk`.
 
 The default suite is actor-local. Tate handoff and Karakuri lexicon integration suites require
 their repositories' canonical EDN fixtures to be mounted by the west workspace integration job.
