@@ -2,6 +2,6 @@
 {:kotoba.app/name    "kaiyaku"
  :kotoba.app/version "0.1.0"
  :kotoba.app/components
- [{:name "kaiyaku" :src "src/kaiyaku/methods/mesh.clj" :scale 1
+ [{:name "kaiyaku" :src "src/kaiyaku/methods/mesh.cljk" :scale 1
    :triggers [{:type :http :route "/kaiyaku"}] :requires #{:cap/kqe}}]
  :kotoba.app/placement {:spread :zone :require {:tier "edge"}}}
