@@ -14,7 +14,7 @@
   comparison. File I/O only at the #?(:clj …) edge."
   (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.catalog :as catalog]
-            #?(:clj [clojure.edn :as edn])
+            #?(:clj [kotoba.lang.edn :as edn])
             #?(:clj [clojure.java.io :as io])))
 
 (defn- sorted-counts

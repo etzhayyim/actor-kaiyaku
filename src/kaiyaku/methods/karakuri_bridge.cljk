@@ -25,7 +25,7 @@
   karakuri ServiceOp (kaiyaku never fabricates an op the member must do by hand).
 
   Deterministic; pure builders; file I/O only at the #?(:clj …) lexicon-read edge."
-  (:require #?(:clj [clojure.edn :as edn])
+  (:require #?(:clj [kotoba.lang.edn :as edn])
             #?(:clj [clojure.java.io :as io])))
 
 (def tier->adapter

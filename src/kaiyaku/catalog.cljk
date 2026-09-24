@@ -11,7 +11,7 @@
     G8 — every entry carries :proc/notice-days + :proc/penalty-jpy (cost-of-severance).
     G6 — every entry :operator-verified false (:representative; verify before live use).
     N1 — every entry is a SERVICE, never a person."
-  (:require [clojure.edn :as edn]
+  (:require [kotoba.lang.edn :as edn]
             [kotoba.lang.text :as str]
             [clojure.java.io :as io]))
 

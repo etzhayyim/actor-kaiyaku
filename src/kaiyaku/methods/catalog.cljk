@@ -27,7 +27,7 @@
   Deterministic; pure fns; file I/O only at the #?(:clj …) load edge. Portable .cljc."
   (:require [kotoba.lang.text :as str]
             [clojure.set :as set]
-            #?(:clj [clojure.edn :as edn])
+            #?(:clj [kotoba.lang.edn :as edn])
             #?(:clj [clojure.java.io :as io])))
 
 ;; G3 — the same unrepresentable set as plan/make-step. A disclosed official
