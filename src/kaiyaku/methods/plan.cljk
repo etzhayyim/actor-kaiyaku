@@ -188,7 +188,7 @@
   (let [ind (apply str (repeat (inc level) " "))
         cind (apply str (repeat level " "))]
     (cond
-      (or (map? v) (instance? clojure.lang.IPersistentMap v))
+      (map? v)
       (if (empty? v)
         "{}"
         (str "{\n"
