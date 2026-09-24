@@ -11,7 +11,7 @@
       :synthetic; live per-member facts are consent- + G7-gated and encrypted.
     N1 — human relationships are UNREPRESENTABLE here: a tie target is always
       a SERVICE. Any person/contact/relationship node kind throws at parse."
-  (:require #?(:clj [clojure.edn :as edn]
+  (:require #?(:clj [kotoba.lang.edn :as edn]
                :cljs [cljs.reader :as edn])))
 
 (def person-node-keys

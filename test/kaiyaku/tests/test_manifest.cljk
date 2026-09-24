@@ -7,7 +7,7 @@
     - those tier ids also map onto karakuri's OWN serviceOp lexicon enum (manifest↔karakuri)
     - the cancel_execute cell (the driver-backed execution cell) is declared"
   (:require [kotoba.test :refer [deftest is run-tests]]
-            [clojure.edn :as edn]
+            [kotoba.lang.edn :as edn]
             [clojure.java.io :as io]
             [kaiyaku.methods.karakuri-bridge :as kb]))
 
