@@ -7,7 +7,7 @@
     - a 解約 is a 'delete' (karakuri's verb enum has no 'cancel'); destructive + dryRun + G5
     - T3 self-submit → nil (member's manual procedure, not a karakuri op)
     - the validator is real (catches a bad adapterTier / non-const dryRun)"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.karakuri-bridge :as kb]))
 

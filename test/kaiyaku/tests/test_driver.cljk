@@ -9,7 +9,7 @@
     - cascade ordering: a :review-cascade plan is never live-dispatched; a :sever plan with
       a rehome step AFTER the cancel step trips assert-cascade-order
     - exactly-once: a svc already in the cursor is a no-op; the batch advances the cursor"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.test :refer [deftest is run-tests]]
             [kaiyaku.methods.cap :as cap]
             [kaiyaku.methods.driver :as driver]))
 

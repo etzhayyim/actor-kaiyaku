@@ -10,7 +10,7 @@
       a non-zero early-termination fee (cost-of-severance honesty)
     - N1: every entry id is a service, never a person
     - validate actually catches a planted bad entry (evasion verb / T2-over-prohibited)"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [clojure.set :as set]
             [kaiyaku.methods.catalog :as catalog]

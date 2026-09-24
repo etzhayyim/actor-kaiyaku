@@ -7,7 +7,7 @@
     - 'netflix'           (cancel api :none / browser :prohibited) → T3 → member-submits, no op
     - 'generic-saas-api'  (cancel api :available)                  → T1 → karakuri ServiceOp
   both real catalog ids (so enrichment fires), both member-approved in the capability."
-  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.pipeline :as pipeline]
             [kaiyaku.methods.catalog :as catalog]

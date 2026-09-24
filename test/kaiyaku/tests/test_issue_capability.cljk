@@ -9,7 +9,7 @@
     - Ed25519 sign→verify roundtrips (and a tampered message fails) — JDK, clj-native
     - an unsigned build is honestly marked UNSIGNED; a signed build is member-signed
     - graph-cid is a deterministic CIDv1 (bafyrei… dag-cbor sha2-256)"
-  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [kaiyaku.tools.issue-capability :as t]
             [kaiyaku.methods.cap :as cap]))
 

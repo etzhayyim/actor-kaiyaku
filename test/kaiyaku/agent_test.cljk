@@ -3,7 +3,7 @@
   T2 browser-use rehearsal on a pure-data mock autopay surface (the
   PayPal-autopay-shaped flow, fully synthetic — G1), plus executor gates
   (G3 tier refusal, G4 Murakumo-only)."
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [langgraph.checkpoint :as cp]
             [langchain.model :as model]
             [langchain.message :as msg]

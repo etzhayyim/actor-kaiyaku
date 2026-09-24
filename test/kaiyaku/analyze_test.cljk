@@ -1,7 +1,7 @@
 (ns kaiyaku.analyze-test
   "Parity + gate tests for kaiyaku.analyze (numbers mirror methods/analyze.py
   over the same synthetic seed)."
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kaiyaku.ledger :as ledger]
             [kaiyaku.analyze :as analyze]))
 

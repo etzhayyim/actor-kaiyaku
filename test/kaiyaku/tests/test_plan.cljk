@@ -8,7 +8,7 @@
     - G8: notice/penalty are carried into the plan (cost-of-severance honesty)
     - G5/G6: every plan demands member-sig + dry-run + Council gate; execute raises
     - only :sever / :review-cascade ties are plannable (:keep refuses)"
-  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.analyze :as analyze]
             [kaiyaku.methods.plan :as plan]))

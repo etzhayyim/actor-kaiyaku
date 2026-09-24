@@ -17,7 +17,7 @@
   unported `datom_emit` module, so they are intentionally omitted here (the datom_emit port
   is a separate unit, mirroring the inochi/rasen precedent). All seven PURE analyze
   assertions are ported 1:1."
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.test :refer [deftest is run-tests]]
             [kotoba.lang.text :as str]
             [clojure.java.io :as io]
             [kaiyaku.methods.analyze :as analyze]))

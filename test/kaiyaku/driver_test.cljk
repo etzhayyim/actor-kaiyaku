@@ -2,7 +2,7 @@
   "kaiyaku 解約 — clj/ lane R1 capability + driver tests (ADR-2606112201 R1).
   The clj-native sibling of the methods/ lane's test_cap + test_driver, on
   real-keyword plan maps."
-  (:require [clojure.test :refer [deftest is]]
+  (:require [kotoba.test :refer [deftest is]]
             [kaiyaku.cap :as cap]
             [kaiyaku.driver :as driver]))
 

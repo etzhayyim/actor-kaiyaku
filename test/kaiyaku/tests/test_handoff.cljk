@@ -4,7 +4,7 @@
   The compose loop closes: tate's make-kaiyaku-handoff output is parsed by kaiyaku's ingest
   and every :kaiyaku-routed clause flag becomes a notice-window candidate — round-trip across
   the two actors, no shared code beyond the EDN wire format."
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kotoba.lang.text :as str]
             [kaiyaku.methods.handoff-ingest :as handoff]

@@ -1,5 +1,5 @@
 (ns kaiyaku.vault-ledger-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kagitaba.contract :as contract]
             [kagitaba.item :as item]
             [kaiyaku.analyze :as analyze]
