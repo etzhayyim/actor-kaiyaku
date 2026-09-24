@@ -6,7 +6,7 @@
   - FRESHNESS: the committed MATURITY.md equals the generator output, so it can
     never silently drift from the manifest/catalog it summarizes."
   (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kaiyaku.methods.maturity :as maturity]))
 
 (def actor-dir (io/file "."))
@@ -28,7 +28,7 @@
   ;; the committed MATURITY.md must match the generator (regenerate if this fails:
   ;; `kbb 20-actors/kaiyaku/methods/maturity.cljk` from repo root, or run -main).
   (let [f (io/file actor-dir "MATURITY.md")]
-    (is (.exists f) "MATURITY.md must be committed")
+    (is (io/exists? f) "MATURITY.md must be committed")
     (is (= (slurp f) (maturity/generate actor-dir))
         "MATURITY.md is stale — regenerate via methods/maturity.cljc -main")))
 

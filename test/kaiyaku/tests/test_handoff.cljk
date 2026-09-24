@@ -5,7 +5,7 @@
   and every :kaiyaku-routed clause flag becomes a notice-window candidate — round-trip across
   the two actors, no shared code beyond the EDN wire format."
   (:require [kotoba.test :refer [deftest is run-tests]]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kotoba.lang.text :as str]
             [kaiyaku.methods.handoff-ingest :as handoff]
             [tate.methods.terms-scan :as terms-scan]))
@@ -41,8 +41,8 @@
   ;; Post py→cljc prune (ADR-2606160842): counts `(deftest …` across the .cljc test files
   ;; in tests/ (the .py files no longer exist) and matches CLAUDE.md's "# N tests, pure stdlib".
   (let [md (slurp (io/file actor-dir "CLAUDE.md"))
-        n-tests (->> (.listFiles (io/file actor-dir "tests"))
-                     (filter #(let [n (.getName %)]
+        n-tests (->> (io/list-files (io/file actor-dir "tests"))
+                     (filter #(let [n (io/file-name %)]
                                 (and (str/starts-with? n "test_") (str/ends-with? n ".cljc"))))
                      (map #(count (re-seq #"(?m)^\(deftest " (slurp %))))
                      (reduce + 0))

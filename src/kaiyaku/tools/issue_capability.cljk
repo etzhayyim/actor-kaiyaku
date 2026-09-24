@@ -34,7 +34,7 @@
   (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.cap :as cap]
             [multiformats.core :as mf]
-            #?(:clj [clojure.java.io :as io]))
+            #?(:clj [kotoba.io :as io]))
   #?(:clj (:import [java.security KeyPairGenerator Signature]
                    [java.util Base64])))
 
