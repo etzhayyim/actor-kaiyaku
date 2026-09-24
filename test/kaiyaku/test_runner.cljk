@@ -1,4 +1,4 @@
-(ns kaiyaku.test-runner (:require [clojure.java.io :as io] [clojure.test :as test]))
+(ns kaiyaku.test-runner (:require [clojure.java.io :as io] [kotoba.test :as test]))
 (def integration-suites
   '#{kaiyaku.tests.test-handoff kaiyaku.tests.test-manifest
      kaiyaku.tests.test-pipeline kaiyaku.tests.test-maturity

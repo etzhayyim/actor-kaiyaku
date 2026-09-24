@@ -3,3 +3,4 @@
 data/persisted/
 out/
 .cpcache/
+.nbb/

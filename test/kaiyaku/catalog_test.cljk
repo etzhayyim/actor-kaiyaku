@@ -3,7 +3,7 @@
   methods/ lane test_catalog). Proves the clj catalog is functionally equivalent:
   loads the shared EDN, derive-tier ≡ plan/select-tier, enrich is additive + G8-drift,
   validate honest; and the driver surfaces the enriched procedure."
-  (:require [clojure.test :refer [deftest is]]
+  (:require [kotoba.test :refer [deftest is]]
             [kaiyaku.catalog :as catalog]
             [kaiyaku.plan :as plan]
             [kaiyaku.driver :as driver]))

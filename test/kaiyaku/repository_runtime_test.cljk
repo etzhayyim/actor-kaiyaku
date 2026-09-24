@@ -1,6 +1,6 @@
 (ns kaiyaku.repository-runtime-test
   (:require [clojure.java.io :as io]
-            [clojure.test :refer [deftest is]]
+            [kotoba.test :refer [deftest is]]
             [kaiyaku.repository-runtime :as runtime]
             [langchain.db :as db]
             [langchain.edn-persist :as edn-persist]

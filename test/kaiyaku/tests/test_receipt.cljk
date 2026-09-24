@@ -7,7 +7,7 @@
       server-signed(false, G3) — keyed on svc, never a person (N1) / score (G2)
     - no-server-key: a credential-shaped value in a descriptor is REFUSED (raises)
     - persistence: catalog + receipts append to the commit-DAG, chain, verify-chain :ok"
-  (:require [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kotoba.lang.text :as str]
             [kaiyaku.methods.receipt :as receipt]

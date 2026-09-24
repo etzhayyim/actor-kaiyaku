@@ -5,7 +5,7 @@
     catalog coverage, the G6/operator-verified gap)
   - FRESHNESS: the committed MATURITY.md equals the generator output, so it can
     never silently drift from the manifest/catalog it summarizes."
-  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.maturity :as maturity]))
 

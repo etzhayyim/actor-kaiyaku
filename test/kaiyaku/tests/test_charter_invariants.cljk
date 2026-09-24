@@ -12,7 +12,7 @@
     G3/no-server-key — a credential is never stored in a receipt; never server-signed
     G8  — cost-of-severance is carried (catalog notice/penalty are numbers)
     N1  — a tie target is always a SERVICE, never a person (no :person/* anywhere)"
-  (:require [kotoba.lang.text] [clojure.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [clojure.java.io :as io]
             [kaiyaku.methods.plan :as plan]
             [kaiyaku.methods.driver :as driver]
