@@ -8,14 +8,14 @@
     - T3 self-submit → nil (member's manual procedure, not a karakuri op)
     - the validator is real (catches a bad adapterTier / non-const dryRun)"
   (:require [kotoba.test :refer [deftest is run-tests]]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kaiyaku.methods.karakuri-bridge :as kb]))
 
 ;; repo-root-relative path works under run_tests.sh (cwd = repo root); fall back via actor-dir.
 (def lex-file
   (let [root (io/file "orgs/etzhayyim/com-etzhayyim-karakuri/lex/serviceOp.edn")]
-    (if (.exists root) root
-        (io/file (-> *file* io/file .getParentFile .getParentFile .getParentFile)
+    (if (io/exists? root) root
+        (io/file (-> *file* io/file io/parent-file io/parent-file io/parent-file)
                  "karakuri" "lex" "serviceOp.edn"))))
 
 (defn- lex [] (kb/lexicon lex-file))

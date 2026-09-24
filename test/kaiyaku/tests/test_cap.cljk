@@ -10,7 +10,7 @@
     - an absent bundle file → nil (fail-open to dry-run-only, never a crash)
     - approved? / usable? / issuance-template behave as the leash requires"
   (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [json.compat :as json]
             [kaiyaku.methods.cap :as cap]))
 

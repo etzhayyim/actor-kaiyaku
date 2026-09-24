@@ -8,7 +8,7 @@
     - 'generic-saas-api'  (cancel api :available)                  → T1 → karakuri ServiceOp
   both real catalog ids (so enrichment fires), both member-approved in the capability."
   (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kaiyaku.methods.pipeline :as pipeline]
             [kaiyaku.methods.catalog :as catalog]
             [kaiyaku.methods.karakuri-bridge :as kb]
@@ -69,7 +69,7 @@
 
 (deftest test-pipeline-serviceops-valid-against-karakuri
   (let [{:keys [serviceops]} (run)
-        lex (kb/lexicon (io/file (.getParentFile actor-dir) "karakuri" "lex" "serviceOp.edn"))]
+        lex (kb/lexicon (io/file (io/parent-file actor-dir) "karakuri" "lex" "serviceOp.edn"))]
     (doseq [op serviceops]
       (is (= [] (kb/validate-serviceop op lex))))))
 

@@ -26,7 +26,7 @@
 
   Deterministic; pure builders; file I/O only at the #?(:clj …) lexicon-read edge."
   (:require #?(:clj [kotoba.lang.edn :as edn])
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (def tier->adapter
   "kaiyaku tier → karakuri adapterTier enum value (the cross-actor scheme bridge)."

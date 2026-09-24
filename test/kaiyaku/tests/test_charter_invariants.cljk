@@ -13,7 +13,7 @@
     G8  — cost-of-severance is carried (catalog notice/penalty are numbers)
     N1  — a tie target is always a SERVICE, never a person (no :person/* anywhere)"
   (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kaiyaku.methods.plan :as plan]
             [kaiyaku.methods.driver :as driver]
             [kaiyaku.methods.catalog :as catalog]

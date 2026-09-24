@@ -8,7 +8,7 @@
     - the cancel_execute cell (the driver-backed execution cell) is declared"
   (:require [kotoba.test :refer [deftest is run-tests]]
             [kotoba.lang.edn :as edn]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kaiyaku.methods.karakuri-bridge :as kb]))
 
 (def actor-dir (io/file "."))
@@ -24,7 +24,7 @@
   (doseq [[component spec] (:actor/r1 (manifest))
           [k path] spec
           :when (#{:method :tool :data} k)]
-    (is (.exists (io/file actor-dir path))
+    (is (io/exists? (io/file actor-dir path))
         (str component " " k " → missing file " path))))
 
 (deftest test-adapter-tiers-match-bridge
@@ -33,7 +33,7 @@
     (is (= m-tiers (set (keys kb/tier->adapter))))))
 
 (deftest test-adapter-tiers-map-to-karakuri-lexicon
-  (let [lex (kb/lexicon (io/file (.getParentFile actor-dir) "karakuri" "lex" "serviceOp.edn"))]
+  (let [lex (kb/lexicon (io/file (io/parent-file actor-dir) "karakuri" "lex" "serviceOp.edn"))]
     (is (kb/tier-scheme-aligned? lex)
         "manifest/bridge tiers must map exactly onto karakuri's adapterTier enum")))
 

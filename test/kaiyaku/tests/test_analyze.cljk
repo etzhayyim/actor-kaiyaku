@@ -19,7 +19,7 @@
   assertions are ported 1:1."
   (:require [kotoba.test :refer [deftest is run-tests]]
             [kotoba.lang.text :as str]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kaiyaku.methods.analyze :as analyze]))
 
 (def actor-dir (io/file "."))

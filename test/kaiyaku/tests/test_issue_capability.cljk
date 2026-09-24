@@ -9,7 +9,7 @@
     - Ed25519 sign→verify roundtrips (and a tampered message fails) — JDK, clj-native
     - an unsigned build is honestly marked UNSIGNED; a signed build is member-signed
     - graph-cid is a deterministic CIDv1 (bafyrei… dag-cbor sha2-256)"
-  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
+  (:require [kotoba.bytes :as kbytes] [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [kaiyaku.tools.issue-capability :as t]
             [kaiyaku.methods.cap :as cap]))
 
@@ -38,13 +38,13 @@
   ;; KNOWN-ANSWER: encoder VALUE correctness (not just determinism) — a wrong-but-
   ;; consistent encoder would corrupt the member's did:key. Bitcoin base58 vectors.
   (is (= "11" (t/b58 [0 0])))                       ; leading zeros → leading '1's
-  (is (= "2g" (t/b58 (mapv int (.getBytes "a" "UTF-8")))))   ; 0x61 = 97 = 1*58+39 → "2g"
+  (is (= "2g" (t/b58 (mapv int (kbytes/utf8-bytes "a")))))   ; 0x61 = 97 = 1*58+39 → "2g"
   (is (= "1" (t/b58 [0]))))
 
 (deftest test-base32-known-answers
   ;; RFC4648 base32 vectors (lowercase, no padding).
-  (is (= "my" (t/base32-lower (mapv int (.getBytes "f" "UTF-8")))))
-  (is (= "mzxw6ytboi" (t/base32-lower (mapv int (.getBytes "foobar" "UTF-8"))))))
+  (is (= "my" (t/base32-lower (mapv int (kbytes/utf8-bytes "f")))))
+  (is (= "mzxw6ytboi" (t/base32-lower (mapv int (kbytes/utf8-bytes "foobar"))))))
 
 (deftest test-issuance-verification-roundtrip
   ;; the bundle the tool builds must satisfy methods/cap.cljc's contract.

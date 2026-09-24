@@ -14,7 +14,7 @@
     cascade (依存) — a :review-cascade plan is never live-dispatched; a :sever plan's
       rehome-dependency steps must precede the irreversible cancel step.
     exactly-once (冪等) — dispatch-batch threads an already-severed cursor."
-  (:require [clojure.set :as set]
+  (:require [kotoba.lang.coll :as set]
             [kaiyaku.cap :as cap]))
 
 (def ^:private cancel-verbs #{"api-cancel" "browser-cancel"})

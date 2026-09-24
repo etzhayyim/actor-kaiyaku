@@ -7,7 +7,7 @@
     - the standing G6 verification: no receipt ever records a live execution (executed=0,
       server-signed=0) → no-live-execution? true"
   (:require [kotoba.test :refer [deftest is run-tests]]
-            [clojure.java.io :as io]
+            [kotoba.io :as io]
             [kaiyaku.methods.audit :as audit]
             [kaiyaku.methods.receipt :as receipt]))
 
