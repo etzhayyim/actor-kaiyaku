@@ -1,7 +1,7 @@
 (ns kaiyaku.analyze-test
   "Parity + gate tests for kaiyaku.analyze (numbers mirror methods/analyze.py
   over the same synthetic seed)."
-  (:require [kotoba.test :refer [deftest is testing]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.test :refer [deftest is testing]]
             [kaiyaku.ledger :as ledger]
             [kaiyaku.analyze :as analyze]))
 
@@ -22,10 +22,10 @@
 (deftest n1-person-nodes-unrepresentable
   (testing "N1 — a person/contact node kind throws at parse"
     (is (thrown-with-msg?
-         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"N1"
+         kerror/ExceptionInfo #"N1"
          (ledger/parse "[{:person/id \"p1\" :person/label \"someone\"}]")))
     (is (thrown-with-msg?
-         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"N1"
+         kerror/ExceptionInfo #"N1"
          (ledger/parse "[{:contact/id \"c1\"}]")))))
 
 (deftest python-parity

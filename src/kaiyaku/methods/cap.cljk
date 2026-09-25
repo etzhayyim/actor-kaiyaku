@@ -39,7 +39,7 @@
   edge. Portable .cljc."
   (:refer-clojure :exclude [load])
   (:require [kotoba.lang.text :as str]
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (def capability
   "The only capability kaiyaku's severance driver ever needs."
@@ -72,7 +72,7 @@
      never crashes). Raises cap-error on a present-but-malformed bundle."
      [path]
      (let [f (io/file (str path))]
-       (when (.exists f)
+       (when (io/exists? f)
          (let [parse (requiring-resolve 'json.compat/parse-string)
                bundle (parse (slurp f))
                missing (vec (remove #(contains? bundle %) required-keys))]

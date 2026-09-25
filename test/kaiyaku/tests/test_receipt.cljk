@@ -7,7 +7,7 @@
       server-signed(false, G3) — keyed on svc, never a person (N1) / score (G2)
     - no-server-key: a credential-shaped value in a descriptor is REFUSED (raises)
     - persistence: catalog + receipts append to the commit-DAG, chain, verify-chain :ok"
-  (:require [kotoba.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.test :refer [deftest is run-tests]]
             [kotoba.io :as io]
             [kotoba.lang.text :as str]
             [kaiyaku.methods.receipt :as receipt]
@@ -58,7 +58,7 @@
 
 (deftest test-no-server-key-refuses-credential-shaped-value
   ;; a descriptor that smuggles a credential-shaped field must be REFUSED at emit.
-  (is (thrown? clojure.lang.ExceptionInfo
+  (is (thrown? kerror/ExceptionInfo
                (receipt/receipt-datoms [{"svc" "a" "authorized" true
                                          "status" "cacao_b64:AAAA-leaked"}] "T0")))
   ;; the clean descriptors emit no credential-shaped value
@@ -76,7 +76,7 @@
         ds (receipt/receipt-datoms benign "seed")]
     (is (pos? (count ds))))
   ;; a long opaque base64 blob (a signature / CACAO) IS refused
-  (is (thrown? clojure.lang.ExceptionInfo
+  (is (thrown? kerror/ExceptionInfo
                (receipt/receipt-datoms
                 [{"svc" "a" "authorized" true
                   "status" (apply str (repeat 50 "A"))}] "T0"))))

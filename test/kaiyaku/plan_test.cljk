@@ -1,6 +1,6 @@
 (ns kaiyaku.plan-test
   "Gate tests for kaiyaku.plan + kaiyaku.datoms (G3 / G5 / G6 / G8 / G2)."
-  (:require [kotoba.test :refer [deftest is testing]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.test :refer [deftest is testing]]
             [kotoba.lang.text :as str]
             [kaiyaku.ledger :as ledger]
             [kaiyaku.analyze :as analyze]
@@ -16,7 +16,7 @@
   (testing "G3 — every detection-evasion verb throws at the only step constructor"
     (doseq [v plan/evasion-verbs]
       (is (thrown-with-msg?
-           #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"G3"
+           kerror/ExceptionInfo #"G3"
            (plan/make-step v "x"))
           (str "verb " v " must be unrepresentable")))))
 
@@ -59,7 +59,7 @@
 (deftest g5-g6-execute-throws
   (testing "G5/G6 — live execution is gated at R0; execute always throws"
     (is (thrown-with-msg?
-         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"G5/G6"
+         kerror/ExceptionInfo #"G5/G6"
          (plan/execute (first (plan/plans (graph))))))))
 
 (deftest datoms-strata

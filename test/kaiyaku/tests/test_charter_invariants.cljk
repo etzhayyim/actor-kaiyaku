@@ -12,7 +12,7 @@
     G3/no-server-key — a credential is never stored in a receipt; never server-signed
     G8  — cost-of-severance is carried (catalog notice/penalty are numbers)
     N1  — a tie target is always a SERVICE, never a person (no :person/* anywhere)"
-  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [kotoba.io :as io]
             [kaiyaku.methods.plan :as plan]
             [kaiyaku.methods.driver :as driver]
@@ -28,7 +28,7 @@
 
 (deftest g3-every-evasion-verb-raises
   (doseq [v plan/evasion-verbs]
-    (is (thrown? clojure.lang.ExceptionInfo (plan/make-step v "x"))
+    (is (thrown? kerror/ExceptionInfo (plan/make-step v "x"))
         (str "evasion verb must be unrepresentable: " v)))
   ;; and none leaks into a disclosed catalog procedure
   (let [{:keys [ok? errors]} (catalog/validate (entries))]
@@ -38,7 +38,7 @@
 
 (deftest g6-no-live-execution
   ;; plan/execute is the R0 contract: it raises, full stop.
-  (is (thrown? clojure.lang.ExceptionInfo (plan/execute {})))
+  (is (thrown? kerror/ExceptionInfo (plan/execute {})))
   ;; the driver authorizes but never executes — over the whole seed pipeline,
   ;; with a capability approving everything, no descriptor is executed=true.
   (let [r (pipeline/run-seed actor-dir
@@ -67,7 +67,7 @@
 
 (deftest g3-receipts-never-store-credentials-or-server-sign
   ;; a credential-shaped value is refused at emit
-  (is (thrown? clojure.lang.ExceptionInfo
+  (is (thrown? kerror/ExceptionInfo
                (receipt/receipt-datoms [{"svc" "a" "status" "cacao_b64:leak" "authorized" true}] "T0")))
   ;; clean receipts are never server-signed
   (let [ds (receipt/receipt-datoms [{"svc" "a" "authorized" true "status" ":authorized-dry-run"

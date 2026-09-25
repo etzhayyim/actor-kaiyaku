@@ -18,7 +18,7 @@
   (:require [kaiyaku.methods.analyze :as analyze]
             [kaiyaku.methods.datom-emit :as de]
             [kaiyaku.methods.kotoba :as k]
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (defn ground-datoms-from
   "Build the durable GROUND EAVT datoms from a loaded {:nodes :edges} graph, in the
@@ -45,7 +45,7 @@
 
 #?(:clj
    (def ^:private here-dir
-     (-> *file* io/file .getCanonicalFile .getParentFile .getParentFile)))
+     (-> *file* io/file io/canonical-file io/parent-file io/parent-file)))
 
 #?(:clj
    (defn default-seed-path []

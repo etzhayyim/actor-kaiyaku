@@ -13,7 +13,7 @@
     N1 — every entry is a SERVICE, never a person."
   (:require [kotoba.lang.edn :as edn]
             [kotoba.lang.text :as str]
-            [clojure.java.io :as io]))
+            [kotoba.io :as io]))
 
 (def evasion-tokens
   #{"captcha-solve" "proxy-rotate" "stealth" "rate-limit-bypass"

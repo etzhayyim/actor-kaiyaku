@@ -19,7 +19,7 @@
   sort), so insertion order is irrelevant — emit sorts node ids itself."
   (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 ;; attributes promoted from each node map into ground datoms (stable order = determinism)
 (def node-attrs
@@ -113,7 +113,7 @@
      "CLI entry: analyze a seed EDN ledger → out/enkiri-datoms.kotoba.edn (file I/O at the edge)."
      [& argv]
      (let [argv (vec argv)
-           here (-> *file* io/file .getParentFile .getParentFile)
+           here (-> *file* io/file io/parent-file io/parent-file)
            seed (if (and (seq argv) (not (str/starts-with? (first argv) "--")))
                   (io/file (first argv))
                   (io/file here "data" "seed-en-ledger.kotoba.edn"))
@@ -127,7 +127,7 @@
            res (analyze/analyze nodes edges)
            out (io/file outdir "enkiri-datoms.kotoba.edn")
            text (emit nodes edges res tx)]
-       (.mkdirs outdir)
+       (io/mkdirs outdir)
        (spit out text)
        (println (str "kaiyaku: " (count (re-seq #":add" text)) " datoms → " out))
        0)))
