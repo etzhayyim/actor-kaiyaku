@@ -8,7 +8,7 @@
     - G8: notice/penalty are carried into the plan (cost-of-severance honesty)
     - G5/G6: every plan demands member-sig + dry-run + Council gate; execute raises
     - only :sever / :review-cascade ties are plannable (:keep refuses)"
-  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [kotoba.io :as io]
             [kaiyaku.methods.analyze :as analyze]
             [kaiyaku.methods.plan :as plan]))
@@ -40,7 +40,7 @@
 
 (deftest test-evasion-unrepresentable
   (doseq [verb (sort plan/evasion-verbs)]
-    (is (thrown? clojure.lang.ExceptionInfo (plan/make-step verb "x"))
+    (is (thrown? kerror/ExceptionInfo (plan/make-step verb "x"))
         (str "evasion verb '" verb "' was representable"))))
 
 (deftest test-cascade-rehome-first
@@ -65,12 +65,12 @@
            (get p "requires")))
     (is (= "dry-run" (get p "mode")))
     (is (every? #(= "dry-run" (get % "mode")) (get p "steps")))
-    (is (thrown? clojure.lang.ExceptionInfo (plan/execute p))
+    (is (thrown? kerror/ExceptionInfo (plan/execute p))
         "execute must raise at R0 (G5/G6)")))
 
 (deftest test-keep-not-plannable
   (let [[nodes ties] (ctx)]
-    (is (thrown? clojure.lang.ExceptionInfo
+    (is (thrown? kerror/ExceptionInfo
                  (plan/build-plan (get nodes "svc:saas-c") (get ties "svc:saas-c"))) ; :keep
         ":keep tie was plannable")))
 

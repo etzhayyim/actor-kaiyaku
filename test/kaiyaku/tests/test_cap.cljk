@@ -9,7 +9,7 @@
       gate that stops a bad capability from ever reaching usable?
     - an absent bundle file → nil (fail-open to dry-run-only, never a crash)
     - approved? / usable? / issuance-template behave as the leash requires"
-  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.lang.text] [kotoba.test :refer [deftest is run-tests]]
             [kotoba.io :as io]
             [json.compat :as json]
             [kaiyaku.methods.cap :as cap]))
@@ -49,9 +49,9 @@
                           :approved-not-seq #(assoc % "approved" "netflix")}]
     (let [p (write-bundle! (mutate (valid-bundle)))]
       (try
-        (is (thrown? clojure.lang.ExceptionInfo (cap/load p)) (str "must reject " label))
+        (is (thrown? kerror/ExceptionInfo (cap/load p)) (str "must reject " label))
         (is (cap/cap-error?
-             (try (cap/load p) (catch clojure.lang.ExceptionInfo e e)))
+             (try (cap/load p) (catch kerror/ExceptionInfo e e)))
             (str label " must be a cap-error"))
         (finally (io/delete-file p true))))))
 

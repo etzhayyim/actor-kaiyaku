@@ -22,7 +22,7 @@
   Pure fns; file I/O behind #?(:clj …). Portable .cljc, repo clj/bb rule."
   (:require [kotoba.bytes :as kbytes] [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (defn- sha256-hex [^String s]
   (let [b (.digest (java.security.MessageDigest/getInstance "SHA-256") (kbytes/utf8-bytes s))]
@@ -126,7 +126,7 @@
 
 #?(:clj
    (do
-     (def ^:private here (-> (io/file *file*) .getParentFile .getParentFile))
+     (def ^:private here (-> (io/file *file*) io/parent-file io/parent-file))
 
      (defn -main
        "Read meisai's handoff EDN → kaiyaku 縁-ledger fragment under gitignored out/."
@@ -137,9 +137,9 @@
              in-path (opt "--in" (str (io/file here ".." "meisai" "data" "kaiyaku-handoff.edn")))
              member (opt "--member" "member:self")
              outdir (io/file (opt "--out" (str (io/file here "out"))))
-             cands (if (.exists (io/file in-path)) (ingest (slurp in-path)) [])
+             cands (if (io/exists? (io/file in-path)) (ingest (slurp in-path)) [])
              forms (to-ledger-forms cands member)]
-         (.mkdirs outdir)
+         (io/mkdirs outdir)
          (spit (io/file outdir "meisai-ledger-fragment.kotoba.edn") (forms->edn forms))
          (println (str "kaiyaku: ingested " (count cands) " meisai recurring-charge candidate(s) → "
                        (count forms) " ledger forms → " (io/file outdir "meisai-ledger-fragment.kotoba.edn")

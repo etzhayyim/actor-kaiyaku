@@ -2,7 +2,7 @@
   "kaiyaku 解約 — clj/ lane R1 capability + driver tests (ADR-2606112201 R1).
   The clj-native sibling of the methods/ lane's test_cap + test_driver, on
   real-keyword plan maps."
-  (:require [kotoba.test :refer [deftest is]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.test :refer [deftest is]]
             [kaiyaku.cap :as cap]
             [kaiyaku.driver :as driver]))
 
@@ -33,9 +33,9 @@
 
 (deftest cap-validate-rejects-bad-scope
   (is (cap/cap-error? (try (cap/validate-bundle (assoc (bundle ["svc:a"]) :graph "graph:other"))
-                           (catch clojure.lang.ExceptionInfo e e))))
+                           (catch kerror/ExceptionInfo e e))))
   (is (cap/cap-error? (try (cap/validate-bundle (assoc (bundle ["svc:a"]) :capability "datom:transact"))
-                           (catch clojure.lang.ExceptionInfo e e))))
+                           (catch kerror/ExceptionInfo e e))))
   ;; a well-formed bundle passes through
   (is (map? (cap/validate-bundle (bundle ["svc:a"])))))
 
@@ -71,7 +71,7 @@
   (let [good (sever-plan "svc:a" :dependents ["svc:dep"])]
     (is (= good (driver/assert-cascade-order good))))
   (let [bad {:svc "svc:a" :steps [{:verb "api-cancel"} {:verb "rehome-dependency"}]}]
-    (is (thrown? clojure.lang.ExceptionInfo (driver/assert-cascade-order bad)))))
+    (is (thrown? kerror/ExceptionInfo (driver/assert-cascade-order bad)))))
 
 (deftest driver-t3-member-submits
   (let [d (driver/dispatch (sever-plan "svc:s" :tier "T3") {:bundle (bundle ["svc:s"]) :now-epoch now})]

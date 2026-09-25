@@ -21,7 +21,7 @@
   supplies :now-epoch + :as-of (no wall clock). Pure except the receipt persist
   edge. Portable .cljc."
   (:require [kotoba.lang.text :as str]
-            #?(:clj [clojure.java.io :as io])
+            #?(:clj [kotoba.io :as io])
             [kaiyaku.methods.analyze :as analyze]
             [kaiyaku.methods.plan :as plan]
             [kaiyaku.methods.catalog :as catalog]
@@ -186,11 +186,11 @@
      "CLI: run the pipeline over the seed (no capability) → out/pipeline-member-report.md.
      File I/O at the edge; the run itself does no network I/O (dry-run, G6)."
      [& _]
-     (let [actor-dir (-> *file* io/file .getParentFile .getParentFile)
+     (let [actor-dir (-> *file* io/file io/parent-file io/parent-file)
            r (run-seed actor-dir)
            outdir (io/file actor-dir "out")
            refused (count (filter #(= ":refused" (get % "status")) (:descriptors r)))]
-       (.mkdirs outdir)
+       (io/mkdirs outdir)
        (spit (io/file outdir "pipeline-member-report.md") (member-report r))
        (spit (io/file outdir "pipeline-summary.edn") (summary-edn r))
        (println (str "kaiyaku pipeline (seed · no capability → all refused honestly): "

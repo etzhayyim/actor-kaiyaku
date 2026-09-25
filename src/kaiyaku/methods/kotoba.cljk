@@ -24,7 +24,7 @@
   (synthetic at R0), never a person/relationship (N1 — a tie target is always a
   SERVICE); severance is dry-run + member-signed (execute() is Council-gated)."
   (:require [kotoba.bytes :as kbytes] [kotoba.lang.text :as str]
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (defn add [entity attr value] [":db/add" entity attr value])
 
@@ -131,8 +131,8 @@
    (do
      (defn append-tx [tx log-path]
        (let [f (io/file log-path)]
-         (when-let [p (.getParentFile f)] (.mkdirs p))
-         (when-not (.exists f)
+         (when-let [p (io/parent-file f)] (io/mkdirs p))
+         (when-not (io/exists? f)
            (spit f (str ";; kaiyaku 解約 — ENKIRI (縁-ledger) LEDGER (append-only, content-addressed "
                         "EAVT commit-DAG of the member's OWN service ties). Generated; DO NOT hand-edit. "
                         "A record of SERVICE ties (never a person — N1); severance is dry-run + member-signed. "
@@ -142,7 +142,7 @@
 
      (defn read-log [log-path]
        (let [f (io/file log-path)]
-         (if-not (.exists f) []
+         (if-not (io/exists? f) []
                  (->> (str/split-lines (slurp f))
                       (map str/trim)
                       (remove #(or (empty? %) (str/starts-with? % ";")))

@@ -28,7 +28,7 @@
   (:require [kotoba.lang.text :as str]
             [kotoba.lang.coll :as set]
             #?(:clj [kotoba.lang.edn :as edn])
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 ;; G3 — the same unrepresentable set as plan/make-step. A disclosed official
 ;; procedure never contains one of these; validate refuses an entry that does.
@@ -235,7 +235,7 @@
    (defn -main
      "CLI: validate the catalog + print coverage (file I/O at the edge)."
      [& argv]
-     (let [here (-> *file* io/file .getParentFile .getParentFile)
+     (let [here (-> *file* io/file io/parent-file io/parent-file)
            path (if (and (seq argv) (not (str/starts-with? (first argv) "--")))
                   (io/file (first argv))
                   (io/file here "data" "cancel-procedures.kotoba.edn"))

@@ -31,12 +31,11 @@
     - The member's seed is THEIR secret — never commit it, never hand it to
       kaiyaku. kaiyaku only ever sees `cacao_b64` (opaque) + the sidecar metadata.
       Revoke by letting `exp` pass (stop re-issuing)."
-  (:require [kotoba.lang.text :as str]
+  (:require [kotoba.bytes :as kbytes] [kotoba.lang.text :as str]
             [kaiyaku.methods.cap :as cap]
             [multiformats.core :as mf]
             #?(:clj [kotoba.io :as io]))
-  #?(:clj (:import [java.security KeyPairGenerator Signature]
-                   [java.util Base64])))
+  #?(:clj (:import [java.security KeyPairGenerator Signature])))
 
 ;; ── base58btc (did:key) ─────────────────────────────────────────────────────
 
@@ -107,8 +106,8 @@
      [private-key ^String message]
      (let [s (Signature/getInstance "Ed25519")]
        (.initSign s private-key)
-       (.update s (.getBytes message "UTF-8"))
-       (.encodeToString (Base64/getEncoder) (.sign s)))))
+       (.update s (kbytes/utf8-bytes message))
+       (kbytes/base64-encode (.sign s)))))
 
 #?(:clj
    (defn verify
@@ -116,8 +115,8 @@
      [public-key ^String message ^String sig-b64]
      (let [v (Signature/getInstance "Ed25519")]
        (.initVerify v public-key)
-       (.update v (.getBytes message "UTF-8"))
-       (.verify v (.decode (Base64/getDecoder) sig-b64)))))
+       (.update v (kbytes/utf8-bytes message))
+       (.verify v (kbytes/base64-decode-bytes sig-b64)))))
 
 ;; ── assemble the sidecar bundle (the contract methods/cap.cljc loads) ───────
 
@@ -140,8 +139,8 @@
   byte-parity vs the live node is the operator step)."
   [{:keys [node-did graph-name exp-epoch nonce approved siwe-sig payload]}]
   (let [envelope {"p" (str payload) "s" (or siwe-sig "")}
-        cacao-b64 #?(:clj (.encodeToString (Base64/getEncoder)
-                                           (.getBytes (canonical-json envelope) "UTF-8"))
+        cacao-b64 #?(:clj (kbytes/base64-encode
+                                           (kbytes/utf8-bytes (canonical-json envelope)))
                      :default (canonical-json envelope))]
     {"cacao_b64" cacao-b64
      "aud" node-did

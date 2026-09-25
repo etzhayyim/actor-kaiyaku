@@ -15,7 +15,7 @@
   (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.catalog :as catalog]
             #?(:clj [kotoba.lang.edn :as edn])
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (defn- sorted-counts
   "Render a {k n} map as 'k1 n1, k2 n2' in sorted-key order (byte-stable)."
@@ -81,7 +81,7 @@
    (defn -main
      "CLI: (re)generate MATURITY.md from the manifest + catalog."
      [& _]
-     (let [actor-dir (-> *file* io/file .getParentFile .getParentFile)
+     (let [actor-dir (-> *file* io/file io/parent-file io/parent-file)
            md (generate actor-dir)]
        (spit (io/file actor-dir "MATURITY.md") md)
        (println (str "kaiyaku: MATURITY.md regenerated (" (count md) " bytes)"))

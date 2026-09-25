@@ -18,7 +18,7 @@
   (:require [kotoba.lang.text :as str]
             [kaiyaku.methods.analyze :as analyze]
             [tate.methods.terms-scan :as terms-scan]
-            #?(:clj [clojure.java.io :as io])))
+            #?(:clj [kotoba.io :as io])))
 
 (defn ingest
   "Parse tate's handoff EDN → notice-window candidates for the 縁-ledger."
@@ -83,7 +83,7 @@
      "CLI entry: tate handoff (file or live) → out/handoff-worklist.md + handoff-datoms.kotoba.edn."
      [& argv]
      (let [argv (vec argv)
-           here (-> *file* io/file .getParentFile .getParentFile)
+           here (-> *file* io/file io/parent-file io/parent-file)
            outdir (if (some #{"--out"} argv)
                     (io/file (nth argv (inc (.indexOf argv "--out"))))
                     (io/file here "out"))
@@ -91,7 +91,7 @@
                   (slurp (str (first argv)))
                   (live-handoff-from-tate))
            cands (ingest text)]
-       (.mkdirs outdir)
+       (io/mkdirs outdir)
        (spit (io/file outdir "handoff-worklist.md") (worklist-md cands))
        (spit (io/file outdir "handoff-datoms.kotoba.edn") (to-datoms cands))
        (println (str "kaiyaku: " (count cands) " notice-window candidates ingested from tate "

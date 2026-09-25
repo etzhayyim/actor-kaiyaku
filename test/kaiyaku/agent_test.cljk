@@ -3,7 +3,7 @@
   T2 browser-use rehearsal on a pure-data mock autopay surface (the
   PayPal-autopay-shaped flow, fully synthetic — G1), plus executor gates
   (G3 tier refusal, G4 Murakumo-only)."
-  (:require [kotoba.test :refer [deftest is testing]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.test :refer [deftest is testing]]
             [langgraph.checkpoint :as cp]
             [langchain.model :as model]
             [langchain.message :as msg]
@@ -137,13 +137,13 @@
 
 (deftest g5-checkpointer-required
   (is (thrown-with-msg?
-       #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"G5"
+       kerror/ExceptionInfo #"G5"
        (agent/build-actor {:model (scripted-model)}))))
 
 (deftest g3-executor-refuses-non-t2
   (testing "executor refuses to rehearse a T3 (stance-refused) plan"
     (is (thrown-with-msg?
-         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"G3"
+         kerror/ExceptionInfo #"G3"
          (executor/rehearse-browser!
           {:model (scripted-model)
            :browser (bbrowser/mock-browser autopay-site "https://wallet.example/myaccount/autopay")
@@ -153,7 +153,7 @@
 (deftest g4-murakumo-only
   (testing "non-loopback inference gateways are refused structurally"
     (is (thrown-with-msg?
-         #?(:clj clojure.lang.ExceptionInfo :cljs ExceptionInfo) #"G4"
+         kerror/ExceptionInfo #"G4"
          (executor/murakumo-model {:url "https://api.openai.com/v1/messages"
                                    :http-fn (fn [_] {:status 200 :body "{}"})
                                    :json-write str :json-read (fn [_] {})})))

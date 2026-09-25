@@ -9,7 +9,7 @@
     - cascade ordering: a :review-cascade plan is never live-dispatched; a :sever plan with
       a rehome step AFTER the cancel step trips assert-cascade-order
     - exactly-once: a svc already in the cursor is a no-op; the batch advances the cursor"
-  (:require [kotoba.test :refer [deftest is run-tests]]
+  (:require [kotoba.lang.error :as kerror] [kotoba.test :refer [deftest is run-tests]]
             [kaiyaku.methods.cap :as cap]
             [kaiyaku.methods.driver :as driver]))
 
@@ -103,7 +103,7 @@
     (is (= good (driver/assert-cascade-order good))))
   (let [bad {"svc" "svc:a" "steps" [{"verb" "api-cancel"}
                                     {"verb" "rehome-dependency"}]}]
-    (is (thrown? clojure.lang.ExceptionInfo (driver/assert-cascade-order bad)))))
+    (is (thrown? kerror/ExceptionInfo (driver/assert-cascade-order bad)))))
 
 ;; ── exactly-once (冪等) ─────────────────────────────────────────────────────
 
